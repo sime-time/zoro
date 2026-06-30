@@ -1,42 +1,44 @@
 import { eq } from "drizzle-orm";
+import parsePhoneNumber from "libphonenumber-js";
 import { db } from "../client";
 import { users } from "../schema";
 
 export type User = typeof users.$inferSelect;
 
-function isE164PhoneNumber(input: string): boolean {
-  return /^\+[1-9]\d{1,14}$/.test(input);
-}
-
-export async function findOrCreateUser(phone: string): Promise<User> {
-  if (!isE164PhoneNumber(phone)) {
-    throw new Error("Phone number must be in E.164 format");
+export async function findOrCreateUser(phoneNumber: string): Promise<User> {
+  const phone = parsePhoneNumber(phoneNumber);
+  if (!phone) {
+    throw new Error("Phone number is not valid");
   }
-
-  const [found] = await db.select().from(users).where(eq(users.phone, phone));
-
-  if (found) return found as User;
 
   const [inserted] = await db
     .insert(users)
-    .values({ phone })
+    .values({ phone: phone.number })
     .onConflictDoNothing({ target: users.phone })
     .returning();
 
   if (inserted) return inserted as User;
 
+  const [found] = await db
+    .select()
+    .from(users)
+    .where(eq(users.phone, phone.number));
+
+  if (found) return found as User;
+
   throw new Error("User not found or created");
 }
 
-export async function getUserId(phone: string): Promise<string> {
-  if (!isE164PhoneNumber(phone)) {
-    throw new Error("Phone number must be in E.164 format");
+export async function getUserId(phoneNumber: string): Promise<string> {
+  const phone = parsePhoneNumber(phoneNumber);
+  if (!phone) {
+    throw new Error("Phone number is not valid");
   }
 
   const [user] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.phone, phone))
+    .where(eq(users.phone, phone.number))
     .limit(1);
 
   if (!user) {
