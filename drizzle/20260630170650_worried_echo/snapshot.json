@@ -2,16 +2,10 @@
   "version": "8",
   "dialect": "postgres",
   "id": "29c5cd5a-dff8-4f30-8574-ed7048ae9f3d",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
-      "values": [
-        "user",
-        "assistant",
-        "system"
-      ],
+      "values": ["user", "assistant", "system"],
       "name": "role",
       "entityType": "enums",
       "schema": "public"
@@ -135,9 +129,7 @@
       "table": "users"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",

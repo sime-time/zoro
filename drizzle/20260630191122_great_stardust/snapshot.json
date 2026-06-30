@@ -2,16 +2,10 @@
   "version": "8",
   "dialect": "postgres",
   "id": "be451061-800a-4e52-bdb0-a0559f81f120",
-  "prevIds": [
-    "29c5cd5a-dff8-4f30-8574-ed7048ae9f3d"
-  ],
+  "prevIds": ["29c5cd5a-dff8-4f30-8574-ed7048ae9f3d"],
   "ddl": [
     {
-      "values": [
-        "user",
-        "assistant",
-        "system"
-      ],
+      "values": ["user", "assistant", "system"],
       "name": "message_role",
       "entityType": "enums",
       "schema": "public"
@@ -494,14 +488,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_user_id_users_id_fkey",
@@ -511,14 +501,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_thread_id_threads_id_fkey",
@@ -528,14 +514,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_user_id_users_id_fkey",
@@ -545,14 +527,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_thread_id_threads_id_fkey",
@@ -561,9 +539,7 @@
       "table": "participants"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "messages_pkey",
       "schema": "public",
@@ -571,9 +547,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "participants_pkey",
       "schema": "public",
@@ -581,9 +555,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "threads_pkey",
       "schema": "public",
@@ -591,9 +563,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
@@ -601,7 +571,5 @@
       "entityType": "pks"
     }
   ],
-  "renames": [
-    "public.role->public.message_role"
-  ]
+  "renames": ["public.role->public.message_role"]
 }

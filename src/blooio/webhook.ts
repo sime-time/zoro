@@ -74,7 +74,7 @@ export async function blooioWebhookHandler(c: Context) {
     blooioMessageId: event.message_id,
     blooioParticipants: event.participants ?? [],
     sender,
-    text,
+    textMessage: text,
     images,
     audio,
     isGroup: event.is_group,
