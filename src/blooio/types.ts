@@ -14,7 +14,7 @@ export interface WebhookEvent {
   is_group: boolean;
   group_id: string | null;
   group_name: string | null;
-  participants: Participant[] | null;
+  participants: ChatParticipant[] | null;
   sender: string | null;
   sent_at?: number | null;
   delivered_at?: number | null;
@@ -23,7 +23,7 @@ export interface WebhookEvent {
   error_message?: string | null;
 }
 
-export interface Participant {
+export interface ChatParticipant {
   contact_id: string;
   identifier: string;
   name: string | null;

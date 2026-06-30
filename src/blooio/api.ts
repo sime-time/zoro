@@ -1,6 +1,6 @@
 import env from "../env";
 import { throwBlooioError } from "./error";
-import type { MediaAttachment, Participant, Reaction } from "./types";
+import type { ChatParticipant, MediaAttachment, Reaction } from "./types";
 
 const BASE_URL = env.BLOOIO_BASE_URL;
 const API_KEY = env.BLOOIO_API_KEY;
@@ -68,7 +68,7 @@ export async function getChatInfo(blooioChatId: string) {
     } | null;
   };
 
-  let participants: Participant[] = [];
+  let participants: ChatParticipant[] = [];
 
   if (data.is_group && data.group_id) {
     // Fetch group members for participants list
@@ -83,7 +83,7 @@ export async function getChatInfo(blooioChatId: string) {
 
       if (membersResponse.ok) {
         const membersData = (await membersResponse.json()) as {
-          members: Participant[];
+          members: ChatParticipant[];
         };
 
         participants = membersData.members.map((m) => ({

@@ -1,11 +1,11 @@
 import { findOrCreateUser } from "../db/queries/users";
 import { markAsRead, startTyping } from "./api";
-import type { ExtractedMedia, MessageService, Participant } from "./types";
+import type { ChatParticipant, ExtractedMedia, MessageService } from "./types";
 
 interface InboundMessageArgs {
   blooioChatId: string;
   blooioMessageId: string;
-  blooioParticipants: Participant[];
+  blooioParticipants: ChatParticipant[];
   sender: string;
   text: string;
   images: ExtractedMedia[];
