@@ -9,7 +9,4 @@ app.get("/", (c) => {
 
 app.post("/webhook/blooio", async (c) => blooioWebhookHandler(c));
 
-export default {
-  port: 8000,
-  fetch: app.fetch,
-};
+export default app;

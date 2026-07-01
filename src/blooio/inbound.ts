@@ -79,16 +79,15 @@ export async function handleInboundMessage({
     if (text) {
       const agentText = cleanResponse(text);
 
-      await Promise.all([
-        sendMessage(blooioChatId, agentText),
-        saveMessage({
-          phoneNumber,
-          blooioChatId,
-          role: "assistant",
-          content: agentText,
-          isGroup,
-        }),
-      ]);
+      await sendMessage(blooioChatId, agentText);
+
+      await saveMessage({
+        phoneNumber,
+        blooioChatId,
+        role: "assistant",
+        content: agentText,
+        isGroup,
+      });
     }
   } catch (err) {
     console.error("[inbound] Error:", err);

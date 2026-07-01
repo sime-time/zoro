@@ -9,6 +9,8 @@ import {
 import { verifyBlooioSignature } from "./verify";
 
 export async function blooioWebhookHandler(c: Context) {
+  console.log("[webhook] Received Blooio request");
+
   const signatureHeader = c.req.header("x-blooio-signature");
   if (!signatureHeader) {
     console.warn("[webhook] Missing Blooio signature");

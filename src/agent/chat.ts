@@ -115,6 +115,7 @@ export async function chat({
     // Extract text response and tool calls
     const reaction: Reaction | null = null;
 
+    console.log("[chat] AI response:", response.text);
     return { text: response.text, reaction };
   } catch (err) {
     console.error("[chat] Failed AI response generation", err);
