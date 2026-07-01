@@ -1,7 +1,13 @@
 import { chat } from "../agent/chat";
 import { getConversation, saveMessage } from "../db/queries/threads";
 import { findOrCreateUser } from "../db/queries/users";
-import { markAsRead, sendMessage, startTyping, stopTyping } from "./api";
+import {
+  markAsRead,
+  sendMessage,
+  sendReaction,
+  startTyping,
+  stopTyping,
+} from "./api";
 import type { ChatParticipant, ExtractedMedia, MessageService } from "./types";
 
 // Clean up LLM response formatting quirks before sending
@@ -76,6 +82,17 @@ export async function handleInboundMessage({
       },
     });
 
+    // Handle reaction first
+    if (reaction) {
+      await sendReaction({
+        blooioChatId,
+        blooioMessageId,
+        reaction,
+        action: "add",
+      });
+    }
+
+    // Send text message
     if (text) {
       const messages = text
         .split("---")

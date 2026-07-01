@@ -172,12 +172,17 @@ export async function stopTyping(blooioChatId: string) {
   return null;
 }
 
-export async function sendReaction(
-  blooioChatId: string,
-  blooioMessageId: string,
-  reaction: Reaction,
-  action: "add" | "remove",
-) {
+export async function sendReaction({
+  blooioChatId,
+  blooioMessageId,
+  reaction,
+  action,
+}: {
+  blooioChatId: string;
+  blooioMessageId: string;
+  reaction: Reaction;
+  action: "add" | "remove";
+}) {
   const encodedChatId = encodeURIComponent(blooioChatId);
   const url = `${BASE_URL}/chats/${encodedChatId}/messages/${blooioMessageId}/reactions`;
 
