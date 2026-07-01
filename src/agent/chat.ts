@@ -10,6 +10,7 @@ import { type Message, saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
 import { buildSystemPrompt } from "./system-prompt";
+import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./transcribe-audio";
 
 export interface ChatContext {
@@ -88,8 +89,9 @@ export async function chat({
     });
   }
 
-  // Generate system prompt
+  // Generate system prompt & tools
   const systemPrompt = buildSystemPrompt(chatContext);
+  const tools = createTools(chatContext);
 
   // Format conversation history
   const history: ModelMessage[] = conversation.map((c) => ({
@@ -102,6 +104,7 @@ export async function chat({
     const response = await generateText({
       model: openai("gpt-5.4"),
       system: systemPrompt,
+      tools: tools,
       messages: [
         ...history,
         {
@@ -112,10 +115,25 @@ export async function chat({
       stopWhen: stepCountIs(5),
     });
 
-    // Extract text response and tool calls
-    const reaction: Reaction | null = null;
+    // Monitor tool calls to initiate side effects
+    let reaction: Reaction | null = null;
+
+    for (const toolCall of response.toolCalls) {
+      if (toolCall.dynamic) continue;
+
+      switch (toolCall.toolName) {
+        case "sendReaction":
+          console.log(
+            "[tool] agent wants to react with:",
+            toolCall.input.reaction,
+          );
+          reaction = toolCall.input.reaction;
+          break;
+      }
+    }
 
     console.log("[chat] AI response:", response.text);
+
     return { text: response.text, reaction };
   } catch (err) {
     console.error("[chat] Failed AI response generation", err);

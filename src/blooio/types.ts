@@ -51,13 +51,16 @@ export type MessageHandler = (
   service?: MessageService,
 ) => Promise<void>;
 
-export type Reaction =
-  | "love"
-  | "like"
-  | "dislike"
-  | "laugh"
-  | "emphasize"
-  | "question";
+export const REACTIONS = [
+  "love",
+  "like",
+  "dislike",
+  "laugh",
+  "emphasize",
+  "question",
+] as const;
+
+export type Reaction = (typeof REACTIONS)[number];
 
 const IMAGE_EXTENSIONS = [
   ".jpg",

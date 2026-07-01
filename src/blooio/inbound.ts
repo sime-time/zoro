@@ -77,17 +77,33 @@ export async function handleInboundMessage({
     });
 
     if (text) {
-      const agentText = cleanResponse(text);
+      const messages = text
+        .split("---")
+        .map((message) => cleanResponse(message))
+        .filter((message) => message.length > 0);
 
-      await sendMessage(blooioChatId, agentText);
+      const fullMessage = messages.join(" ");
 
       await saveMessage({
         phoneNumber,
         blooioChatId,
         role: "assistant",
-        content: agentText,
+        content: fullMessage,
         isGroup,
       });
+
+      // Send multiple text messages split by "---"
+      for (let i = 0; i < messages.length; i++) {
+        const isLastMessage = i === messages.length - 1;
+
+        await sendMessage(blooioChatId, messages[i] || "");
+
+        // Add a natural delay between messages (except last one)
+        if (!isLastMessage) {
+          const delay = 400 + Math.random() * 400; // 400-800 ms
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
     }
   } catch (err) {
     console.error("[inbound] Error:", err);
