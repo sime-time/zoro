@@ -65,7 +65,7 @@ export async function getConversation({
   phoneNumber,
   blooioChatId,
   isGroup = false,
-  limit = 50,
+  limit = 20,
 }: {
   phoneNumber: string;
   blooioChatId: string;

@@ -41,6 +41,16 @@ export const habitEventStatus = pgEnum("habit_event_status", [
   "skipped",
 ]);
 
+export const weekDays = pgEnum("weekdays", [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+]);
+
 const timestamps = () => ({
   created_at: timestamp().notNull().defaultNow(),
   updated_at: timestamp()
@@ -110,6 +120,7 @@ export const habits = pgTable(
     description: text(),
     target_count: integer().notNull().default(1),
     target_period: habitTargetPeriod().notNull().default("day"),
+    scheduled_days: weekDays().array(),
     status: habitStatus().notNull().default("active"),
     ...timestamps(),
   },

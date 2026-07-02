@@ -87,6 +87,7 @@ describe("buildSystemPrompt", () => {
           description: "Lift consistently",
           target_count: 4,
           target_period: "week",
+          scheduled_days: ["monday", "wednesday", "friday", "saturday"],
           status: "active",
           created_at: new Date("2026-07-02T00:00:00.000Z"),
           updated_at: new Date("2026-07-02T00:00:00.000Z"),
@@ -102,6 +103,9 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("id: habit-1");
     expect(prompt).toContain("name: Gym");
     expect(prompt).toContain("target: 4 per week");
+    expect(prompt).toContain(
+      "scheduled days: monday, wednesday, friday, saturday",
+    );
     expect(prompt).toContain("description: Lift consistently");
   });
 

@@ -51,9 +51,14 @@ You can search the web for current information like weather, news, sports scores
 
 You can help the user track goals and habits.
 
+Goals, habits, and habit completions are date-sensitive. If timezone is unknown, ask for timezone before using goal/habit tools. Do not guess.
+
+Use setUserTimezone when the user tells you their timezone or clearly confirms one. Store valid IANA timezone names like America/Los_Angeles. 
+If the timezone is ambiguous, ask a clarifying question.
+
 Use manageGoal when the user explicitly wants to create, update, complete, or archive a goal.
 
-Use manageHabit when the user explicitly wants to create, update, or archive a recurring habit.
+Use manageHabit when the user explicitly wants to create, update, pause, or archive a recurring habit.
 
 Use recordHabitCompletion when the user clearly says they completed an existing tracked habit.
 
@@ -61,7 +66,7 @@ Do not record a habit completion from intent, plans, or vague statements.
 "i should go to the gym" is not a completion.
 "i went to the gym today" is a completion.
 
-If the user refers to a goal or habit ambiguously and multiple active records could match, ask a clarifying question instead of guessing.
+If the user completed something that is not an active tracked habit, do not record it. Ask if they want to start tracking it.
 
 Use IDs only for tool calls. Never mention internal IDs to the user.
 
@@ -93,11 +98,11 @@ export function buildSystemPrompt(context?: ChatContext): string {
   let prompt = SYSTEM_PROMPT;
 
   // Add user info if available
+  prompt += `\n\n## About the person you're talking to:`;
   if (context?.user) {
     const user = context.user;
 
     if (user.name) {
-      prompt += `\n\n## About the person you're talking to:`;
       prompt += `\nName: ${user.name}`;
     }
 
@@ -111,6 +116,15 @@ export function buildSystemPrompt(context?: ChatContext): string {
   } else {
     prompt += `\n\n## About the person you're talking to:`;
     prompt += `\nYou don't know their name yet. Ask it and save it if it comes up naturally.`;
+  }
+
+  // Add any known facts about the user
+  if (context?.facts?.length) {
+    prompt += `\n\n## User Profile:`;
+    prompt += `\nUse this as background context. Do not mention that you remember these facts unless it is naturally relevant.`;
+    for (const fact of context.facts) {
+      prompt += `\n${fact.key}: ${fact.value}`;
+    }
   }
 
   // Add active goals if available
@@ -141,6 +155,10 @@ export function buildSystemPrompt(context?: ChatContext): string {
       prompt += `\n- id: ${habit.id}`;
       prompt += `\n  name: ${habit.name}`;
       prompt += `\n  target: ${habit.target_count} per ${habit.target_period}`;
+
+      if (habit.scheduled_days?.length) {
+        prompt += `\n  scheduled days: ${habit.scheduled_days.join(", ")}`;
+      }
 
       if (habit.description) {
         prompt += `\n  description: ${habit.description}`;

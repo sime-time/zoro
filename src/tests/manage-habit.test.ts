@@ -7,6 +7,7 @@ const createHabit = mock(async (input: Record<string, unknown>) => ({
   description: input.description ?? null,
   target_count: input.targetCount ?? 1,
   target_period: input.targetPeriod ?? "day",
+  scheduled_days: input.scheduledDays ?? null,
   status: "active",
   created_at: new Date("2026-07-02T00:00:00.000Z"),
   updated_at: new Date("2026-07-02T00:00:00.000Z"),
@@ -19,6 +20,7 @@ const updateHabit = mock(async (input: Record<string, unknown>) => ({
   description: input.description ?? null,
   target_count: input.targetCount ?? 1,
   target_period: input.targetPeriod ?? "day",
+  scheduled_days: input.scheduledDays ?? null,
   status: input.status ?? "active",
   created_at: new Date("2026-07-02T00:00:00.000Z"),
   updated_at: new Date("2026-07-02T00:00:00.000Z"),
@@ -83,6 +85,7 @@ describe("manageHabit", () => {
         description: "Lift consistently",
         targetCount: 4,
         targetPeriod: "week",
+        scheduledDays: ["monday", "wednesday", "friday", "saturday"],
       },
       context as never,
     );
@@ -93,9 +96,16 @@ describe("manageHabit", () => {
       description: "Lift consistently",
       targetCount: 4,
       targetPeriod: "week",
+      scheduledDays: ["monday", "wednesday", "friday", "saturday"],
     });
     expect(result.success).toBe(true);
     expect(result.newHabit.id).toBe("habit-created");
+    expect(result.newHabit.scheduled_days).toEqual([
+      "monday",
+      "wednesday",
+      "friday",
+      "saturday",
+    ]);
   });
 
   test("update requires a habitId", async () => {
@@ -121,6 +131,7 @@ describe("manageHabit", () => {
         description: "Updated description",
         targetCount: 3,
         targetPeriod: "week",
+        scheduledDays: ["wednesday", "thursday", "saturday"],
       },
       context as never,
     );
@@ -132,9 +143,15 @@ describe("manageHabit", () => {
       description: "Updated description",
       targetCount: 3,
       targetPeriod: "week",
+      scheduledDays: ["wednesday", "thursday", "saturday"],
     });
     expect(result.success).toBe(true);
     expect(result.updatedHabit.id).toBe("habit-1");
+    expect(result.updatedHabit.scheduled_days).toEqual([
+      "wednesday",
+      "thursday",
+      "saturday",
+    ]);
   });
 
   test("pause calls updateHabit with paused status", async () => {

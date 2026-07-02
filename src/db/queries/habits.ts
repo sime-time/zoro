@@ -5,12 +5,14 @@ import {
   type habitStatus,
   habits,
   type habitTargetPeriod,
+  type weekDays,
 } from "../schema";
 
 export type Habit = typeof habits.$inferSelect;
 export type HabitEvent = typeof habitEvents.$inferSelect;
 export type HabitStatus = (typeof habitStatus.enumValues)[number];
 export type HabitTargetPeriod = (typeof habitTargetPeriod.enumValues)[number];
+export type WeekDays = (typeof weekDays.enumValues)[number];
 
 export async function getActiveHabits(userId: string): Promise<Habit[]> {
   return await db
@@ -26,12 +28,14 @@ export async function createHabit({
   description,
   targetCount = 1,
   targetPeriod = "day",
+  scheduledDays,
 }: {
   userId: string;
   name: string;
   description?: string;
   targetCount?: number;
   targetPeriod?: HabitTargetPeriod;
+  scheduledDays?: WeekDays[];
 }): Promise<Habit> {
   if (name.trim() === "") throw new Error("Habit name is required");
 
@@ -47,6 +51,7 @@ export async function createHabit({
       description: description?.trim() || null,
       target_count: targetCount,
       target_period: targetPeriod,
+      scheduled_days: scheduledDays,
     })
     .returning();
 
@@ -62,6 +67,7 @@ export async function updateHabit({
   description,
   targetCount,
   targetPeriod,
+  scheduledDays,
   status,
 }: {
   userId: string;
@@ -70,6 +76,7 @@ export async function updateHabit({
   description?: string | null;
   targetCount?: number;
   targetPeriod?: HabitTargetPeriod;
+  scheduledDays?: WeekDays[];
   status?: HabitStatus;
 }): Promise<Habit> {
   const updates: Partial<typeof habits.$inferInsert> = {
@@ -90,6 +97,7 @@ export async function updateHabit({
   }
 
   if (targetPeriod !== undefined) updates.target_period = targetPeriod;
+  if (scheduledDays !== undefined) updates.scheduled_days = scheduledDays;
   if (status !== undefined) updates.status = status;
 
   const [habit] = await db

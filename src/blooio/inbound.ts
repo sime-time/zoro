@@ -1,7 +1,9 @@
 import { chat } from "../agent/chat";
+import { extractAndSaveUserFacts } from "../agent/workflows/extract-facts";
 import { getActiveGoals } from "../db/queries/goals";
 import { getActiveHabits } from "../db/queries/habits";
 import { getConversation, saveMessage } from "../db/queries/threads";
+import { getUserFacts } from "../db/queries/user-facts";
 import { findOrCreateUser } from "../db/queries/users";
 import {
   markAsRead,
@@ -62,6 +64,7 @@ export async function handleInboundMessage({
     const phoneNumber = sender;
 
     const user = await findOrCreateUser(phoneNumber);
+    const facts = await getUserFacts(user.id);
 
     // Get active goals and habits
     const goals = await getActiveGoals(user.id);
@@ -75,7 +78,7 @@ export async function handleInboundMessage({
     });
 
     // Get agent's response
-    const { text, reaction } = await chat({
+    const { text, reaction, userText } = await chat({
       blooioChatId,
       userMessage: textMessage,
       images,
@@ -83,6 +86,7 @@ export async function handleInboundMessage({
       conversation,
       chatContext: {
         user: user,
+        facts,
         goals,
         habits,
         isGroupChat: isGroup,
@@ -117,17 +121,28 @@ export async function handleInboundMessage({
         isGroup,
       });
 
+      void extractAndSaveUserFacts({
+        userId: user.id,
+        userMessage: userText,
+        assistantMessage: text,
+        existingFacts: facts,
+      }).catch((err) => {
+        console.error("[facts] Failed fact extraction:", err);
+      });
+
       // Send multiple text messages split by "---"
       for (let i = 0; i < messages.length; i++) {
-        const isLastMessage = i === messages.length - 1;
-
         await sendMessage(blooioChatId, messages[i] || "");
 
         // Add a natural delay between messages (except last one)
+        /*
+        const isLastMessage = i === messages.length - 1;
+
         if (!isLastMessage) {
           const delay = 200 + Math.random() * 400; // 200-600 ms
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
+				*/
       }
     }
   } catch (err) {

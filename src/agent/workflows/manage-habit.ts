@@ -1,6 +1,6 @@
 import z from "zod";
 import { createHabit, updateHabit } from "../../db/queries/habits";
-import { habitTargetPeriod } from "../../db/schema";
+import { habitTargetPeriod, weekDays } from "../../db/schema";
 import type { ChatContext } from "../chat";
 
 export const manageHabitSchema = z.object({
@@ -37,6 +37,12 @@ export const manageHabitSchema = z.object({
     .describe(
       "The time window for the habit target. Example: for 'gym 4x/week', targetPeriod is 'week'; for 'meditate daily', targetPeriod is 'day'.",
     ),
+  scheduledDays: z
+    .array(z.enum(weekDays.enumValues))
+    .optional()
+    .describe(
+      "Specific weekdays the user intends to complete this weekly habit. Example: for 'gym every Wednesday, Thursday, and Saturday', use ['wednesday', 'thursday', 'saturday']. Leave empty for flexible habits like 'gym 3x/week'.",
+    ),
 });
 
 type ManageHabitInput = z.infer<typeof manageHabitSchema>;
@@ -61,6 +67,7 @@ export async function manageHabit(
         description: input.description,
         targetCount: input.targetCount,
         targetPeriod: input.targetPeriod,
+        scheduledDays: input.scheduledDays,
       });
 
       return { success: true, newHabit };
@@ -82,6 +89,7 @@ export async function manageHabit(
         description: input.description,
         targetCount: input.targetCount,
         targetPeriod: input.targetPeriod,
+        scheduledDays: input.scheduledDays,
       });
 
       return { success: true, updatedHabit };

@@ -9,6 +9,7 @@ import type { MessageService, Reaction } from "../blooio/types";
 import type { Goal } from "../db/queries/goals";
 import type { Habit } from "../db/queries/habits";
 import { type Message, saveMessage } from "../db/queries/threads";
+import type { UserFact } from "../db/queries/user-facts";
 import type { User } from "../db/queries/users";
 import env from "../env";
 import { buildSystemPrompt } from "./system-prompt";
@@ -17,6 +18,7 @@ import { type AudioInput, transcribeAudio } from "./transcribe-audio";
 
 export interface ChatContext {
   user: User;
+  facts?: UserFact[];
   goals?: Goal[];
   habits?: Habit[];
   isGroupChat: boolean;
@@ -27,6 +29,7 @@ export interface ChatContext {
 export interface ChatResponse {
   text: string | null;
   reaction: Reaction | null;
+  userText: string | null;
 }
 
 export interface ImageInput {
@@ -138,7 +141,7 @@ export async function chat({
 
     console.log("[chat] AI response:", response.text);
 
-    return { text: response.text, reaction };
+    return { text: response.text, reaction, userText: text };
   } catch (err) {
     console.error("[chat] Failed AI response generation", err);
     throw new Error("Failed to generate AI response");
