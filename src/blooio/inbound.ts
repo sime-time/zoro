@@ -1,4 +1,6 @@
 import { chat } from "../agent/chat";
+import { getActiveGoals } from "../db/queries/goals";
+import { getActiveHabits } from "../db/queries/habits";
 import { getConversation, saveMessage } from "../db/queries/threads";
 import { findOrCreateUser } from "../db/queries/users";
 import {
@@ -61,6 +63,10 @@ export async function handleInboundMessage({
 
     const user = await findOrCreateUser(phoneNumber);
 
+    // Get active goals and habits
+    const goals = await getActiveGoals(user.id);
+    const habits = await getActiveHabits(user.id);
+
     const { conversation, thread } = await getConversation({
       phoneNumber,
       blooioChatId,
@@ -76,7 +82,9 @@ export async function handleInboundMessage({
       audio,
       conversation,
       chatContext: {
-        sender: user,
+        user: user,
+        goals,
+        habits,
         isGroupChat: isGroup,
         service,
       },

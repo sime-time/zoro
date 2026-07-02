@@ -76,7 +76,7 @@ export async function updateHabit({
     updated_at: new Date(),
   };
 
-  if (name?.trim() !== "") updates.name = name;
+  if (name !== undefined && name.trim() !== "") updates.name = name;
 
   if (description !== undefined) {
     updates.description = description?.trim() || null;

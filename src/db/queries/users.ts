@@ -47,3 +47,20 @@ export async function getUserId(phoneNumber: string): Promise<string> {
 
   return user.id;
 }
+
+export async function updateTimezone(userId: string, timezone: string) {
+  const [user] = await db
+    .update(users)
+    .set({
+      timezone,
+      updated_at: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!user) {
+    throw new Error("User timezone not saved");
+  }
+
+  return user;
+}

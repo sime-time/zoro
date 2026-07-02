@@ -65,7 +65,7 @@ export async function updateGoal({
     updated_at: new Date(),
   };
 
-  if (title?.trim() !== "") updates.title = title;
+  if (title !== undefined && title.trim() !== "") updates.title = title;
 
   if (description !== undefined) {
     updates.description = description?.trim() || null;

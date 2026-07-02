@@ -6,6 +6,8 @@ import {
   type UserContent,
 } from "ai";
 import type { MessageService, Reaction } from "../blooio/types";
+import type { Goal } from "../db/queries/goals";
+import type { Habit } from "../db/queries/habits";
 import { type Message, saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
@@ -14,7 +16,9 @@ import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./transcribe-audio";
 
 export interface ChatContext {
-  sender: User;
+  user: User;
+  goals?: Goal[];
+  habits?: Habit[];
   isGroupChat: boolean;
   // participantNames: string[];
   service?: MessageService;
@@ -81,7 +85,7 @@ export async function chat({
 
     // Capture user message before generating response
     await saveMessage({
-      phoneNumber: chatContext.sender.phone,
+      phoneNumber: chatContext.user.phone,
       blooioChatId,
       role: "user",
       content: text,

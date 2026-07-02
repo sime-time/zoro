@@ -1,7 +1,25 @@
 import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import { REACTIONS } from "../blooio/types";
+import { recordHabitCompletion } from "../db/queries/habits";
+import { updateTimezone } from "../db/queries/users";
+import { isValidTimeZone } from "../time";
 import type { ChatContext } from "./chat";
+import { manageGoal, manageGoalSchema } from "./workflows/manage-goal";
+import { manageHabit, manageHabitSchema } from "./workflows/manage-habit";
+
+// Every time-related tool starts with this guard
+function requireTimezone(context: ChatContext) {
+  if (!context.user.timezone) {
+    return {
+      success: false,
+      code: "timezone_required",
+      message:
+        "Ask the user what timezone they are in before creating goals, habits, or habit completions.",
+    };
+  }
+  return null;
+}
 
 export function createTools(context: ChatContext): ToolSet | undefined {
   const sendReaction = tool({
@@ -15,6 +33,95 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     execute: async ({ reaction }) => ({ reaction }),
   });
 
-  const tools = context.service === "iMessage" ? { sendReaction } : undefined;
-  return tools;
+  const setUserTimezone = tool({
+    description: "Update the user's timezone in IANA format.",
+    inputSchema: z.object({
+      timezone: z.string().describe("The user's timezone in IANA format."),
+    }),
+    execute: async ({ timezone }) => {
+      if (isValidTimeZone(timezone)) {
+        const user = await updateTimezone(context.user.id, timezone);
+        return { success: true, userTimezone: user.timezone };
+      } else {
+        return {
+          success: false,
+          code: "invalid_timezone",
+          message: "Timezone is not in IANA format",
+        };
+      }
+    },
+  });
+
+  const manageGoalTool = tool({
+    description:
+      "Create or update a user's goal. Use this when the user explicitly wants to start tracking a goal, change goal details, mark a goal complete, or archive a goal. Requires the user's timezone before use. For updates, completions, or archives, use the goal ID from the active goals listed in context. Do not guess if the goal is ambiguous; ask a clarifying question instead.",
+    inputSchema: manageGoalSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await manageGoal(input, context);
+    },
+  });
+
+  const manageHabitTool = tool({
+    description:
+      "Create or update a user's habit definition. Use this when the user explicitly wants to track a recurring behavior, change its target, pause/archive it, or edit its name/description. Requires the user's timezone before use. For updates or archives, use the habit ID from the active habits listed in context. Do not use this to record a completed habit; use recordHabitCompletion for that.",
+    inputSchema: manageHabitSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await manageHabit(input, context);
+    },
+  });
+
+  const recordHabitCompletionTool = tool({
+    description:
+      "Record that the user completed an existing habit on a specific local date. Use this when the user clearly says they completed a tracked habit, such as 'went to the gym today' or 'meditated this morning'. Requires the user's timezone before use. Use the habit ID from the active habits listed in context. If the habit or date is ambiguous, ask a clarifying question instead of calling this tool.",
+    inputSchema: z.object({
+      habitId: z
+        .string()
+        .describe(
+          "The ID of the existing habit that was completed. Use an active habit ID from context.",
+        ),
+      occurred: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .describe(
+          "The user's local calendar date when the habit was completed, in YYYY-MM-DD format. For 'today' or 'yesterday', resolve using the user's timezone.",
+        ),
+      note: z
+        .string()
+        .optional()
+        .describe(
+          "Optional short note about the completion, like 'leg day', '10 minutes', or 'morning session'.",
+        ),
+    }),
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      const event = await recordHabitCompletion({
+        userId: context.user.id,
+        habitId: input.habitId,
+        occurred: input.occurred,
+        note: input.note,
+      });
+
+      return { success: true, habitEvent: event };
+    },
+  });
+
+  const tools = {
+    setUserTimezone,
+    manageGoal: manageGoalTool,
+    manageHabit: manageHabitTool,
+    recordHabitCompletion: recordHabitCompletionTool,
+  };
+
+  const conditionalTools =
+    context.service === "iMessage" ? { sendReaction } : undefined;
+
+  return { ...tools, ...conditionalTools };
 }

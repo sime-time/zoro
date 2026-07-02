@@ -1,3 +1,4 @@
+import { getCurrentDateInTimezone } from "../time";
 import type { ChatContext } from "./chat";
 
 const SYSTEM_PROMPT = `You are Zoro, an AI accountability assistant, accessible via text message.
@@ -46,6 +47,24 @@ The vibe is: natural, chill, like texting a friend. Write normally but casual - 
 
 You can search the web for current information like weather, news, sports scores, etc. Use web search when you need up-to-date information.
 
+## Goals And Habits
+
+You can help the user track goals and habits.
+
+Use manageGoal when the user explicitly wants to create, update, complete, or archive a goal.
+
+Use manageHabit when the user explicitly wants to create, update, or archive a recurring habit.
+
+Use recordHabitCompletion when the user clearly says they completed an existing tracked habit.
+
+Do not record a habit completion from intent, plans, or vague statements.
+"i should go to the gym" is not a completion.
+"i went to the gym today" is a completion.
+
+If the user refers to a goal or habit ambiguously and multiple active records could match, ask a clarifying question instead of guessing.
+
+Use IDs only for tool calls. Never mention internal IDs to the user.
+
 ## Reactions
 You can react to messages using iMessage reactions, but TEXT RESPONSES ARE PREFERRED.
 
@@ -74,26 +93,69 @@ export function buildSystemPrompt(context?: ChatContext): string {
   let prompt = SYSTEM_PROMPT;
 
   // Add user info if available
-  if (context?.sender) {
-    const user = context.sender;
+  if (context?.user) {
+    const user = context.user;
 
     if (user.name) {
-      prompt += `\n\n## About the person you're talking to (YOU ALREADY KNOW THIS - don't re-save it!)`;
+      prompt += `\n\n## About the person you're talking to:`;
       prompt += `\nName: ${user.name}`;
+    }
+
+    if (user.timezone) {
+      prompt += `\nTimezone: ${user.timezone}`;
+      prompt += `\nCurrent date in user's timezone: ${getCurrentDateInTimezone(user.timezone)}`;
+    } else {
+      prompt += `\nTimezone: unknown`;
+      prompt += `\nIf the user wants to create goals, create habits, record habit completions, or discuss dates like today/tomorrow/this week, ask for their timezone first. Do not guess.`;
     }
   } else {
     prompt += `\n\n## About the person you're talking to:`;
     prompt += `\nYou don't know their name yet. Ask it and save it if it comes up naturally.`;
   }
 
+  // Add active goals if available
+  if (context?.goals?.length && context.goals.length > 0) {
+    prompt += `\n\n## Active Goals`;
+    for (const goal of context.goals) {
+      prompt += `\n- id: ${goal.id}`;
+      prompt += `\n  title: ${goal.title}`;
+
+      if (goal.description) {
+        prompt += `\n  description: ${goal.description}`;
+      }
+
+      if (goal.motivation) {
+        prompt += `\n  motivation: ${goal.motivation}`;
+      }
+
+      if (goal.deadline) {
+        prompt += `\n  deadline: ${goal.deadline}`;
+      }
+    }
+  }
+
+  // Add active habits if available
+  if (context?.habits?.length && context.habits.length > 0) {
+    prompt += `\n\n## Active Habits`;
+    for (const habit of context.habits) {
+      prompt += `\n- id: ${habit.id}`;
+      prompt += `\n  name: ${habit.name}`;
+      prompt += `\n  target: ${habit.target_count} per ${habit.target_period}`;
+
+      if (habit.description) {
+        prompt += `\n  description: ${habit.description}`;
+      }
+    }
+  }
+
   // Reactions are only available for certain message services
   if (context?.service) {
     prompt += `\n\n## Messaging Platform \nThis conversation is happening over ${context.service}.`;
     if (context.service === "iMessage") {
-      prompt += "Reactions are available";
+      prompt += "\nReactions are available";
     } else if (context.service === "SMS") {
       prompt +=
-        "This is basic SMS - no reactions. Keep responses simple and concise.";
+        "\nThis is basic SMS - no reactions. Keep responses simple and concise.";
     }
   }
 
