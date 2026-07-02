@@ -5,7 +5,6 @@ import {
   integer,
   pgEnum,
   pgTable,
-  real,
   text,
   timestamp,
   uniqueIndex,
@@ -37,7 +36,7 @@ export const habitTargetPeriod = pgEnum("habit_target_period", [
   "month",
 ]);
 
-export const habitEventType = pgEnum("habit_event_type", [
+export const habitEventStatus = pgEnum("habit_event_status", [
   "completed",
   "skipped",
 ]);
@@ -130,15 +129,15 @@ export const habitEvents = pgTable(
     habit_id: uuid()
       .notNull()
       .references(() => habits.id, { onDelete: "cascade" }),
-    event_type: habitEventType().notNull(),
-    occurred_on: date().notNull(),
+    status: habitEventStatus().notNull(),
+    occurred: date().notNull(),
     note: text(),
     ...timestamps(),
   },
   (table) => [
     index("habit_events_user_idx").on(table.user_id),
-    index("habit_events_habit_date_idx").on(table.habit_id, table.occurred_on),
-    index("habit_events_user_date_idx").on(table.user_id, table.occurred_on),
+    index("habit_events_habit_date_idx").on(table.habit_id, table.occurred),
+    index("habit_events_user_date_idx").on(table.user_id, table.occurred),
   ],
 );
 

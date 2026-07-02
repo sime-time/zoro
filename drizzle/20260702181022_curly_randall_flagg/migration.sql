@@ -1,0 +1,1 @@
+ALTER TABLE "habit_events" RENAME COLUMN "occurred_on" TO "occurred";

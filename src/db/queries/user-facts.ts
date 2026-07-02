@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../client";
 import { userFacts } from "../schema";
 
@@ -8,7 +8,7 @@ export async function getUserFacts(userId: string): Promise<UserFact[]> {
   return await db.select().from(userFacts).where(eq(userFacts.user_id, userId));
 }
 
-export async function upsertUserFacts({
+export async function upsertUserFact({
   userId,
   key,
   value,
@@ -45,7 +45,12 @@ export async function upsertUserFacts({
 }
 
 export async function deleteUserFact(userId: string, key: string) {
+  const normalizedKey = key.trim();
+  if (!normalizedKey) throw new Error("User fact key is required");
+
   return await db
     .delete(userFacts)
-    .where(and(eq(userFacts.user_id, userId), eq(userFacts.key, key)));
+    .where(
+      and(eq(userFacts.user_id, userId), eq(userFacts.key, normalizedKey)),
+    );
 }
