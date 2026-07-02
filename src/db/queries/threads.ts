@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../client";
 import { messages, participants, threads } from "../schema";
 import { getUserId } from "./users";
@@ -76,13 +76,16 @@ export async function getConversation({
   const thread = await findOrCreateThread(blooioChatId, isGroup);
   await findOrCreateParticipant({ userId, threadId: thread.id });
 
-  // Get list of messages, oldest to newest
-  const conversation = await db
-    .select()
-    .from(messages)
-    .where(eq(messages.thread_id, thread.id))
-    .orderBy(asc(messages.created_at))
-    .limit(limit);
+  // Get list of messages, sorted by newest first (desc)
+  // Must be reversed so conversation flows oldest to newest
+  const conversation = (
+    await db
+      .select()
+      .from(messages)
+      .where(eq(messages.thread_id, thread.id))
+      .orderBy(desc(messages.created_at))
+      .limit(limit)
+  ).reverse();
 
   return { conversation, thread };
 }

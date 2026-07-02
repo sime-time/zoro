@@ -92,10 +92,10 @@ export async function handleInboundMessage({
       });
     }
 
-    // Send text message
+    // Split text message by variants of "---"
     if (text) {
       const messages = text
-        .split("---")
+        .split(/\s*-\s*-\s*-\s*/g) // "---"
         .map((message) => cleanResponse(message))
         .filter((message) => message.length > 0);
 
@@ -117,7 +117,7 @@ export async function handleInboundMessage({
 
         // Add a natural delay between messages (except last one)
         if (!isLastMessage) {
-          const delay = 400 + Math.random() * 400; // 400-800 ms
+          const delay = 200 + Math.random() * 400; // 200-600 ms
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
