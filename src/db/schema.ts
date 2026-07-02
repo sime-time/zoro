@@ -72,10 +72,6 @@ export const userFacts = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     key: text().notNull(),
     value: text().notNull(),
-    confidence: real().notNull().default(1),
-    source_message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     ...timestamps(),
   },
   (table) => [
@@ -94,12 +90,8 @@ export const goals = pgTable(
     title: text().notNull(),
     description: text(),
     motivation: text(),
-    success_criteria: text(),
     status: goalStatus().notNull().default("active"),
     deadline: date(),
-    source_message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     ...timestamps(),
   },
   (table) => [
@@ -120,9 +112,6 @@ export const habits = pgTable(
     target_count: integer().notNull().default(1),
     target_period: habitTargetPeriod().notNull().default("day"),
     status: habitStatus().notNull().default("active"),
-    source_message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     ...timestamps(),
   },
   (table) => [
@@ -144,9 +133,6 @@ export const habitEvents = pgTable(
     event_type: habitEventType().notNull(),
     occurred_on: date().notNull(),
     note: text(),
-    source_message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     ...timestamps(),
   },
   (table) => [
