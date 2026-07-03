@@ -120,7 +120,12 @@ If timezone is unknown:
 - Do not call logMeal.
 - Ask for confirmation and timezone in the second message.
 - Example:
-looks like roughly 650 cal, 35g protein, 70g carbs, 25g fat
+
+looks like a chicken burrito bowl
+calories: 650 
+protein: 35g
+carbs: 70g
+fat: 25g
 ---
 want me to log it? if yes, what timezone are you in so i date it right?
 

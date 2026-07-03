@@ -2,56 +2,34 @@
   "version": "8",
   "dialect": "postgres",
   "id": "627fbd35-8d0d-4661-9598-1a64c007f6bc",
-  "prevIds": [
-    "2fbc7b0d-6bb7-42b9-800b-525ebf8f0e8a"
-  ],
+  "prevIds": ["2fbc7b0d-6bb7-42b9-800b-525ebf8f0e8a"],
   "ddl": [
     {
-      "values": [
-        "active",
-        "paused",
-        "completed",
-        "archived"
-      ],
+      "values": ["active", "paused", "completed", "archived"],
       "name": "goal_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "completed",
-        "skipped"
-      ],
+      "values": ["completed", "skipped"],
       "name": "habit_event_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "active",
-        "paused",
-        "archived"
-      ],
+      "values": ["active", "paused", "archived"],
       "name": "habit_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "day",
-        "week",
-        "month"
-      ],
+      "values": ["day", "week", "month"],
       "name": "habit_target_period",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "user",
-        "assistant",
-        "system"
-      ],
+      "values": ["user", "assistant", "system"],
       "name": "message_role",
       "entityType": "enums",
       "schema": "public"
@@ -1382,14 +1360,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goals_user_id_users_id_fkey",
@@ -1399,14 +1373,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "habit_events_user_id_users_id_fkey",
@@ -1416,14 +1386,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "habit_id"
-      ],
+      "columns": ["habit_id"],
       "schemaTo": "public",
       "tableTo": "habits",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "habit_events_habit_id_habits_id_fkey",
@@ -1433,14 +1399,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "habits_user_id_users_id_fkey",
@@ -1450,14 +1412,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "meals_user_id_users_id_fkey",
@@ -1467,14 +1425,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_user_id_users_id_fkey",
@@ -1484,14 +1438,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_thread_id_threads_id_fkey",
@@ -1501,14 +1451,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_user_id_users_id_fkey",
@@ -1518,14 +1464,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_thread_id_threads_id_fkey",
@@ -1535,14 +1477,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_facts_user_id_users_id_fkey",
@@ -1551,9 +1489,7 @@
       "table": "user_facts"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goals_pkey",
       "schema": "public",
@@ -1561,9 +1497,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "habit_events_pkey",
       "schema": "public",
@@ -1571,9 +1505,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "habits_pkey",
       "schema": "public",
@@ -1581,9 +1513,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meals_pkey",
       "schema": "public",
@@ -1591,9 +1521,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "messages_pkey",
       "schema": "public",
@@ -1601,9 +1529,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "participants_pkey",
       "schema": "public",
@@ -1611,9 +1537,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "threads_pkey",
       "schema": "public",
@@ -1621,9 +1545,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_facts_pkey",
       "schema": "public",
@@ -1631,9 +1553,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",

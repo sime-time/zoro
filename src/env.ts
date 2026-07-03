@@ -6,7 +6,8 @@ const EnvSchema = z.object({
   BLOOIO_BASE_URL: z.string(),
   BLOOIO_WEBHOOK_SECRET: z.string(),
   OPENAI_API_KEY: z.string(),
-  PERPLEXITY_API_KEY: z.string(),
+  GEMINI_API_KEY: z.string(),
+  EXA_API_KEY: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

@@ -6,7 +6,6 @@ import {
   numeric,
   pgEnum,
   pgTable,
-  real,
   text,
   timestamp,
   uniqueIndex,

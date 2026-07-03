@@ -18,13 +18,13 @@
     "drizzle-kit": "^1.0.0-rc.4"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.8",
     "@ai-sdk/openai": "^4.0.4",
-    "@perplexity-ai/perplexity_ai": "^0.34.0",
     "ai": "^7.0.9",
     "drizzle-orm": "^1.0.0-rc.4",
+    "exa-js": "^2.16.0",
     "hono": "^4.12.27",
     "libphonenumber-js": "^1.13.7",
-    "linkup-sdk": "^3.2.7",
     "openai": "^6.45.0",
     "pg": "^8.22.0",
     "zod": "^4.4.3"
