@@ -8,7 +8,7 @@ import type { ChatContext } from "./chat";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
 import { manageGoal, manageGoalSchema } from "./workflows/manage-goal";
 import { manageHabit, manageHabitSchema } from "./workflows/manage-habit";
-import { searchWeb, searchWebSchema } from "./workflows/search-web";
+import { searchWeb } from "./workflows/search-web";
 
 // Every time-related tool starts with this guard
 function requireTimezone(context: ChatContext) {
@@ -38,18 +38,12 @@ export function createTools(context: ChatContext): ToolSet | undefined {
   const searchWebTool = tool({
     description:
       "Search the web with Linkup for current or external information. Use this for facts that may be recent, unknown, location-specific, or not available from conversation context. Build the search request using four retrieval-query components: role, scope, method, and format. Do not use it for private user data, goals, habits, or meals already available in context.",
-    inputSchema: searchWebSchema,
-    execute: async ({ role, scope, method, format }) => {
-      const query = `${role}
-Scope:
-${scope}
-
-Method:
-${method}
-
-Format: 
-${format}
-`;
+    inputSchema: z.object({
+      query: z
+        .string()
+        .describe("A precise web search query describing what to find."),
+    }),
+    execute: async ({ query }) => {
       return await searchWeb(query);
     },
   });
