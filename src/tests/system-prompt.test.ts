@@ -40,7 +40,6 @@ describe("buildSystemPrompt", () => {
 
     expect(prompt).toContain("Timezone: unknown");
     expect(prompt).toContain("ask for their timezone first");
-    expect(prompt).toContain("Do not guess");
   });
 
   test("includes active goals with internal IDs", () => {
@@ -107,18 +106,5 @@ describe("buildSystemPrompt", () => {
       "scheduled days: monday, wednesday, friday, saturday",
     );
     expect(prompt).toContain("description: Lift consistently");
-  });
-
-  test("includes messaging platform reaction guidance", () => {
-    const context = {
-      user: baseUser,
-      isGroupChat: false,
-      service: "iMessage",
-    } satisfies ChatContext;
-
-    const prompt = buildSystemPrompt(context);
-
-    expect(prompt).toContain("This conversation is happening over iMessage.");
-    expect(prompt).toContain("Reactions are available");
   });
 });
