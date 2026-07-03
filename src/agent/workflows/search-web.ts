@@ -1,23 +1,26 @@
-import { LinkupClient } from "linkup-sdk";
+import OpenAI from "openai";
 import env from "../../env";
 
-const client = new LinkupClient({
-  apiKey: env.LINKUP_API_KEY,
+const openai = new OpenAI({
+  apiKey: env.OPENAI_API_KEY,
 });
 
-export async function searchWeb(query: string) {
+export async function searchWeb(query: string, quality: "low" | "high") {
+  const model = quality === "high" ? "gpt-5.5" : "gpt-5.4-mini";
+
   try {
     console.log("[web] Search query:", query);
+    console.log("[web] Search model:", model);
 
-    const searchResult = await client.search({
-      query: query,
-      depth: "standard",
-      outputType: "sourcedAnswer",
+    const response = await openai.responses.create({
+      model,
+      tools: [{ type: "web_search" }],
+      input: query,
     });
 
-    console.log("[web] Search result:", searchResult.answer);
+    console.log("[web] Search answer:", response.output_text);
 
-    return { success: true, answer: searchResult.answer };
+    return { success: true, answer: response.output_text };
   } catch (err) {
     console.error("[web] Search failed:", err);
     return {

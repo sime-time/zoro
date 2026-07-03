@@ -42,11 +42,16 @@ export function createTools(context: ChatContext): ToolSet | undefined {
       query: z
         .string()
         .describe(
-          "The user's original search question, preserving their wording as much as possible. Fix obvious typos only. Do not rewrite into keyword-style search terms or add details the user did not provide.",
+          "Focused web search query for current or external information. Include key entities, dates, locations, or constraints from the user's request.",
+        ),
+      quality: z
+        .enum(["low", "high"])
+        .describe(
+          "Use 'low' for simple lookups like weather or basic current facts where approximate results are acceptable. Use 'high' for current, ambiguous, user-facing, time-sensitive, or multi-source facts.",
         ),
     }),
-    execute: async ({ query }) => {
-      return await searchWeb(query);
+    execute: async ({ query, quality }) => {
+      return await searchWeb(query, quality);
     },
   });
 
