@@ -14,7 +14,7 @@ import type { User } from "../db/queries/users";
 import env from "../env";
 import { buildSystemPrompt } from "./system-prompt";
 import { createTools } from "./tools";
-import { type AudioInput, transcribeAudio } from "./transcribe-audio";
+import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
 
 export interface ChatContext {
   user: User;

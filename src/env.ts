@@ -6,6 +6,7 @@ const EnvSchema = z.object({
   BLOOIO_BASE_URL: z.string(),
   BLOOIO_WEBHOOK_SECRET: z.string(),
   OPENAI_API_KEY: z.string(),
+  LINKUP_API_KEY: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

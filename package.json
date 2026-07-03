@@ -23,6 +23,7 @@
     "drizzle-orm": "^1.0.0-rc.4",
     "hono": "^4.12.27",
     "libphonenumber-js": "^1.13.7",
+    "linkup-sdk": "^3.2.7",
     "openai": "^6.45.0",
     "pg": "^8.22.0",
     "zod": "^4.4.3"
