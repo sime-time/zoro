@@ -107,7 +107,7 @@ export async function handleInboundMessage({
     // Split text message by variants of "---"
     if (text) {
       const messages = text
-        .replace(/\n\s*\n\s*\n/g, " --- ") // Replace \n\n\n with ---
+        .replace(/\n\s*\n/g, " --- ") // Replace double-newlines with ---
         .split(/\s*-\s*-\s*-\s*/g) // Split by any combo of "---"
         .map((message) => cleanResponse(message))
         .filter((message) => message.length > 0);
