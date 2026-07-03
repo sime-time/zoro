@@ -1,0 +1,1 @@
+ALTER TABLE "meals" RENAME COLUMN "logged_date" TO "log_date";

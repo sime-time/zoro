@@ -1,0 +1,1 @@
+CREATE INDEX "meals_log_date_idx" ON "meals" ("log_date");

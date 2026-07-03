@@ -1,0 +1,1 @@
+ALTER TABLE "meals" RENAME COLUMN "fats_g" TO "fat_g";

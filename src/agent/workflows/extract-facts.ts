@@ -37,33 +37,7 @@ Use concise snake_case keys.
 Use concise values.
 Prefer updating an existing key over creating a near-duplicate key.
 Return an empty facts array when there is nothing durable worth saving.
-Return at most 3 facts.
-
-Example Behavior
-User:
-i prefer when you call me out directly instead of being too soft
-Extractor returns:
-{
-  facts: [
-    {
-      key: "accountability_style",
-      value: "prefers direct callouts over soft encouragement"
-    }
-  ]
-}
-
-User:
-went to the gym today
-Extractor returns:
-{ facts: [] }
-Because that belongs in habit_events, not user_facts.
-
-User:
-my goal is to ship zoro this week
-Extractor returns:
-{ facts: [] }
-Because that belongs in goals, not user_facts.
-`;
+Return at most 3 facts.`;
 
 const extractedFactsSchema = z.object({
   facts: z

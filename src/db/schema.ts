@@ -3,8 +3,10 @@ import {
   date,
   index,
   integer,
+  numeric,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
   uniqueIndex,
@@ -201,5 +203,27 @@ export const messages = pgTable(
   (table) => [
     index("messages_thread_idx").on(table.thread_id),
     index("messages_user_thread_idx").on(table.user_id, table.thread_id),
+  ],
+);
+
+export const meals = pgTable(
+  "meals",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    description: text().notNull(),
+    log_date: date().notNull(),
+
+    calories: integer().notNull(),
+    protein_g: numeric({ precision: 8, scale: 2, mode: "number" }).notNull(),
+    carbs_g: numeric({ precision: 8, scale: 2, mode: "number" }).notNull(),
+    fat_g: numeric({ precision: 8, scale: 2, mode: "number" }).notNull(),
+    ...timestamps(),
+  },
+  (table) => [
+    index("meals_user_idx").on(table.user_id),
+    index("meals_user_log_date_idx").on(table.user_id, table.log_date),
   ],
 );

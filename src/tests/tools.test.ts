@@ -20,6 +20,18 @@ const createGoal = mock(async () => ({ id: "goal-1" }));
 const updateGoal = mock(async () => ({ id: "goal-1" }));
 const createHabit = mock(async () => ({ id: "habit-1" }));
 const updateHabit = mock(async () => ({ id: "habit-1" }));
+const createMeal = mock(async (input: Record<string, unknown>) => ({
+  id: "meal-1",
+  user_id: input.userId,
+  log_date: input.logDate,
+  description: input.description,
+  calories: input.calories,
+  protein_g: input.proteinG,
+  carbs_g: input.carbsG,
+  fat_g: input.fatG,
+  created_at: new Date("2026-07-02T00:00:00.000Z"),
+  updated_at: new Date("2026-07-02T00:00:00.000Z"),
+}));
 
 mock.module("../db/queries/users", () => ({
   updateTimezone,
@@ -34,6 +46,10 @@ mock.module("../db/queries/habits", () => ({
 mock.module("../db/queries/goals", () => ({
   createGoal,
   updateGoal,
+}));
+
+mock.module("../db/queries/meals", () => ({
+  createMeal,
 }));
 
 const { createTools } = await import("../agent/tools");
@@ -113,7 +129,7 @@ describe("createTools", () => {
       success: false,
       code: "timezone_required",
       message:
-        "Ask the user what timezone they are in before creating goals, habits, or habit completions.",
+        "Ask the user what timezone they are in before creating goals, habits, habit completions, or meal logs.",
     });
   });
 
@@ -131,7 +147,36 @@ describe("createTools", () => {
       success: false,
       code: "timezone_required",
       message:
-        "Ask the user what timezone they are in before creating goals, habits, or habit completions.",
+        "Ask the user what timezone they are in before creating goals, habits, habit completions, or meal logs.",
+    });
+  });
+
+  test("logMeal returns timezone guard result when timezone is missing", async () => {
+    const tools = createTools(createContext(null) as never);
+    const logMealTool = tools?.logMeal as ExecutableTool<{
+      logDate: string;
+      description: string;
+      calories: number;
+      proteinG: number;
+      carbsG: number;
+      fatG: number;
+    }>;
+
+    const result = await logMealTool.execute({
+      logDate: "2026-07-02",
+      description: "chicken burrito bowl",
+      calories: 760,
+      proteinG: 48,
+      carbsG: 82,
+      fatG: 28,
+    });
+
+    expect(createMeal).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      success: false,
+      code: "timezone_required",
+      message:
+        "Ask the user what timezone they are in before creating goals, habits, habit completions, or meal logs.",
     });
   });
 
@@ -153,7 +198,53 @@ describe("createTools", () => {
       success: false,
       code: "timezone_required",
       message:
-        "Ask the user what timezone they are in before creating goals, habits, or habit completions.",
+        "Ask the user what timezone they are in before creating goals, habits, habit completions, or meal logs.",
+    });
+  });
+
+  test("logMeal saves meal when timezone exists", async () => {
+    const tools = createTools(createContext("America/Los_Angeles") as never);
+    const logMealTool = tools?.logMeal as ExecutableTool<{
+      logDate: string;
+      description: string;
+      calories: number;
+      proteinG: number;
+      carbsG: number;
+      fatG: number;
+    }>;
+
+    const result = await logMealTool.execute({
+      logDate: "2026-07-02",
+      description: "chicken burrito bowl",
+      calories: 760,
+      proteinG: 48,
+      carbsG: 82,
+      fatG: 28,
+    });
+
+    expect(createMeal).toHaveBeenCalledWith({
+      userId: "user-1",
+      logDate: "2026-07-02",
+      description: "chicken burrito bowl",
+      calories: 760,
+      proteinG: 48,
+      carbsG: 82,
+      fatG: 28,
+    });
+    expect(result).toEqual({
+      success: true,
+      meal: {
+        id: "meal-1",
+        user_id: "user-1",
+        log_date: "2026-07-02",
+        description: "chicken burrito bowl",
+        calories: 760,
+        protein_g: 48,
+        carbs_g: 82,
+        fat_g: 28,
+        created_at: new Date("2026-07-02T00:00:00.000Z"),
+        updated_at: new Date("2026-07-02T00:00:00.000Z"),
+      },
     });
   });
 

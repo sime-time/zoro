@@ -80,7 +80,7 @@ export async function chat({
     text += `[Someone sent a voice memo but transcription failed. Let them know you couldn't hear it and ask them to try again or type their message.]`;
   } else if (!text && images.length > 0) {
     // Default prompt for images only (no audio, no text)
-    text = "What's in this image?";
+    text = "[Image attached]";
   }
 
   if (text) {

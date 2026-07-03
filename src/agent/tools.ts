@@ -5,6 +5,7 @@ import { recordHabitCompletion } from "../db/queries/habits";
 import { updateTimezone } from "../db/queries/users";
 import { isValidTimeZone } from "../time";
 import type { ChatContext } from "./chat";
+import { logMeal, logMealSchema } from "./workflows/log-meal";
 import { manageGoal, manageGoalSchema } from "./workflows/manage-goal";
 import { manageHabit, manageHabitSchema } from "./workflows/manage-habit";
 
@@ -15,7 +16,7 @@ function requireTimezone(context: ChatContext) {
       success: false,
       code: "timezone_required",
       message:
-        "Ask the user what timezone they are in before creating goals, habits, or habit completions.",
+        "Ask the user what timezone they are in before creating goals, habits, habit completions, or meal logs.",
     };
   }
   return null;
@@ -49,6 +50,18 @@ export function createTools(context: ChatContext): ToolSet | undefined {
           message: "Timezone is not in IANA format",
         };
       }
+    },
+  });
+
+  const logMealTool = tool({
+    description:
+      "Log a user's meal macros after the user explicitly confirms they want to save/log it. Use this for meals described in text or estimated from photos. Requires the user's timezone before use. Do not call this tool after only estimating macros; first summarize the estimate, ask if they want to log it, allow edits, and only call this tool after confirmation. Use the latest corrected meal details from the conversation history.",
+    inputSchema: logMealSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await logMeal(context.user.id, input);
     },
   });
 
@@ -115,6 +128,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
   const tools = {
     setUserTimezone,
+    logMeal: logMealTool,
     manageGoal: manageGoalTool,
     manageHabit: manageHabitTool,
     recordHabitCompletion: recordHabitCompletionTool,

@@ -141,13 +141,13 @@ export async function recordHabitCompletion({
 export async function getHabitEvents({
   userId,
   habitId,
-  to,
   from,
+  to,
 }: {
   userId: string;
   habitId?: string;
-  to?: string; // YYYY-MM-DD
   from?: string; // YYYY-MM-DD
+  to?: string; // YYYY-MM-DD
 }): Promise<HabitEvent[]> {
   const filters: SQL[] = [eq(habitEvents.user_id, userId)];
 
