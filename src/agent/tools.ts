@@ -37,11 +37,13 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
   const searchWebTool = tool({
     description:
-      "Search the web with Linkup for current or external information. Use this for facts that may be recent, unknown, location-specific, or not available from conversation context. Build the search request using four retrieval-query components: role, scope, method, and format. Do not use it for private user data, goals, habits, or meals already available in context.",
+      "Search the web for current or external information. Use this for facts that may be recent, unknown, location-specific, or not available from conversation context. Do not use it for private user data, goals, habits, or meals already available in context.",
     inputSchema: z.object({
       query: z
         .string()
-        .describe("A precise web search query describing what to find."),
+        .describe(
+          "The user's original search question, preserving their wording as much as possible. Fix obvious typos only. Do not rewrite into keyword-style search terms or add details the user did not provide.",
+        ),
     }),
     execute: async ({ query }) => {
       return await searchWeb(query);

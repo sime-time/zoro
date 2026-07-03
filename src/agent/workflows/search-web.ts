@@ -15,7 +15,7 @@ export async function searchWeb(query: string) {
       outputType: "sourcedAnswer",
     });
 
-    console.log("[web] Search answer:", searchResult.answer);
+    console.log("[web] Search result:", searchResult.answer);
 
     return { success: true, answer: searchResult.answer };
   } catch (err) {
