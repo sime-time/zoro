@@ -44,14 +44,9 @@ export function createTools(context: ChatContext): ToolSet | undefined {
         .describe(
           "Focused web search query for current or external information. Include key entities, dates, locations, or constraints from the user's request.",
         ),
-      quality: z
-        .enum(["low", "high"])
-        .describe(
-          "Use 'low' for simple lookups like weather or basic current facts where approximate results are acceptable. Use 'high' for current, ambiguous, user-facing, time-sensitive, or multi-source facts.",
-        ),
     }),
-    execute: async ({ query, quality }) => {
-      return await searchWeb(query, quality);
+    execute: async ({ query }) => {
+      return await searchWeb(query);
     },
   });
 

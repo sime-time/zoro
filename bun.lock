@@ -6,6 +6,7 @@
       "name": "zoro",
       "dependencies": {
         "@ai-sdk/openai": "^4.0.4",
+        "@perplexity-ai/perplexity_ai": "^0.34.0",
         "ai": "^7.0.9",
         "drizzle-orm": "^1.0.0-rc.4",
         "hono": "^4.12.27",
@@ -108,6 +109,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
 
     "@js-temporal/polyfill": ["@js-temporal/polyfill@0.5.1", "", { "dependencies": { "jsbi": "^4.3.0" } }, "sha512-hloP58zRVCRSpgDxmqCWJNlizAlUgJFqG2ypq79DCvyv9tHjRYMDOcPFjzfl/A1/YxDvRCZz8wvZvmapQnKwFQ=="],
+
+    "@perplexity-ai/perplexity_ai": ["@perplexity-ai/perplexity_ai@0.34.0", "", {}, "sha512-0+YaTfBY8KT3BzUIoWdGnx31JpdNQXMT032ORC/Tj+mRLtOT5LDJ/BBi5OLSE8hUdtav1Uc63FlSeyFAODlCWA=="],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 

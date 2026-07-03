@@ -107,8 +107,8 @@ export async function handleInboundMessage({
     // Split text message by variants of "---"
     if (text) {
       const messages = text
-        .replace(/\n\s*\n/g, " --- ") // Replace newline breaks with ---
-        .split(/\s*-\s*-\s*-\s*/g) // "---"
+        .replace(/\n\s*\n\s*\n/g, " --- ") // Replace \n\n\n with ---
+        .split(/\s*-\s*-\s*-\s*/g) // Split by any combo of "---"
         .map((message) => cleanResponse(message))
         .filter((message) => message.length > 0);
 
@@ -134,16 +134,6 @@ export async function handleInboundMessage({
       // Send multiple text messages split by "---"
       for (let i = 0; i < messages.length; i++) {
         await sendMessage(blooioChatId, messages[i] || "");
-
-        // Add a natural delay between messages (except last one)
-        /*
-        const isLastMessage = i === messages.length - 1;
-
-        if (!isLastMessage) {
-          const delay = 200 + Math.random() * 400; // 200-600 ms
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-				*/
       }
     }
   } catch (err) {

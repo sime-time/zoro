@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.4",
+    "@perplexity-ai/perplexity_ai": "^0.34.0",
     "ai": "^7.0.9",
     "drizzle-orm": "^1.0.0-rc.4",
     "hono": "^4.12.27",

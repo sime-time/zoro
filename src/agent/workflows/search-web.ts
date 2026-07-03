@@ -1,26 +1,22 @@
-import OpenAI from "openai";
+import Perplexity from "@perplexity-ai/perplexity_ai";
 import env from "../../env";
 
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
+const perplexity = new Perplexity({ apiKey: env.PERPLEXITY_API_KEY });
 
-export async function searchWeb(query: string, quality: "low" | "high") {
-  const model = quality === "high" ? "gpt-5.5" : "gpt-5.4-mini";
-
+export async function searchWeb(query: string) {
   try {
     console.log("[web] Search query:", query);
-    console.log("[web] Search model:", model);
 
-    const response = await openai.responses.create({
-      model,
-      tools: [{ type: "web_search" }],
-      input: query,
+    const completion = await perplexity.chat.completions.create({
+      model: "sonar-pro",
+      messages: [{ role: "user", content: query }],
     });
 
-    console.log("[web] Search answer:", response.output_text);
+    const answer = completion.choices[0]?.message.content;
 
-    return { success: true, answer: response.output_text };
+    console.log("[web] Search answer:", answer);
+
+    return { success: true, answer };
   } catch (err) {
     console.error("[web] Search failed:", err);
     return {
