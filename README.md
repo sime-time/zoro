@@ -14,15 +14,15 @@ Core promise:
 
 ## Tech Stack
 
-- **Deno** — secure TypeScript runtime.
+- **Bun** — TypeScript runtime, package manager, and test runner.
 - **Hono** — webhook/API server.
 - **Railway** — app hosting and production infrastructure.
 - **Railway Postgres** — app database, connected over Railway private networking.
 - **Drizzle ORM** — schema, migrations, and type-safe database access.
 - **Blooio** — iMessage/SMS API layer.
 - **Vercel AI SDK** — AI orchestration, model calls, and tool calling when compatible.
-- **Polar** — checkout, subscriptions, and customer portal for the MVP.
-- **Stripe** — underlying payment infrastructure where needed.
+- **Stripe** — checkout, subscriptions, billing, and customer portal.
+- **Inngest** — durable background jobs and reminder scheduling.
 
 ## High-Level Architecture
 
@@ -31,7 +31,7 @@ User texts Zoro
   ↓
 Blooio webhook
   ↓
-Deno/Hono API server on Railway
+Bun/Hono API server on Railway
   ↓
 Drizzle repos read/write Railway Postgres
   ↓
@@ -42,9 +42,19 @@ AI generates a short text-native reply
 Blooio sends reply back to user
 ```
 
+Durable reminders follow the same text-native delivery path:
+
+```txt
+Zoro schedules a reminder
+  ↓
+Inngest stores and runs the scheduled job durably
+  ↓
+Blooio sends the reminder as an iMessage/SMS text
+```
+
 ## Product Scope
 
-Build the smallest useful text-native accountability agent.
+Build the most useful text-native accountability agent.
 
 MVP focus:
 
@@ -52,7 +62,8 @@ MVP focus:
 - Conversational onboarding.
 - Durable user profile, goals, preferences, and memory.
 - Goal-aware conversation that helps users decide and follow through.
-- Subscription gating through Polar.
+- Subscription gating through Stripe.
+- Durable reminders scheduled with Inngest and delivered through Blooio texts.
 - Safety handling for dangerous or high-risk messages.
 
 ## Product Principles

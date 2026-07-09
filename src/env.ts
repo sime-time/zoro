@@ -8,6 +8,8 @@ const EnvSchema = z.object({
   OPENAI_API_KEY: z.string(),
   GEMINI_API_KEY: z.string(),
   EXA_API_KEY: z.string(),
+  INNGEST_EVENT_KEY: z.string(),
+  INNGEST_SIGNING_KEY: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;
