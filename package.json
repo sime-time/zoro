@@ -4,6 +4,7 @@
   "scripts": {
     "start": "bun run src/main.ts",
     "dev": "bun run --hot src/main.ts",
+    "inngest": "INNGEST_DEV=1 bun run --hot src/main.ts",
     "check": "bunx --bun @biomejs/biome check --write"
   },
   "peerDependencies": {
@@ -24,6 +25,7 @@
     "drizzle-orm": "^1.0.0-rc.4",
     "exa-js": "^2.16.0",
     "hono": "^4.12.27",
+    "inngest": "^4.11.0",
     "libphonenumber-js": "^1.13.7",
     "openai": "^6.45.0",
     "pg": "^8.22.0",
