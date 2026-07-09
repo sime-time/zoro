@@ -5,7 +5,7 @@ import { functions, inngest } from "./inngest/client";
 
 const app = new Hono();
 
-app.get("/", (c) => {
+app.get("/api/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() }, 200);
 });
 
