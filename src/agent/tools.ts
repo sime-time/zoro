@@ -56,8 +56,16 @@ export function createTools(context: ChatContext): ToolSet | undefined {
       name: z.string().min(1),
     }),
     execute: async ({ name }) => {
-      const user = await updateUserName(context.user.id, name);
-      return { success: true, userName: user.name };
+      if (name.trim() !== "") {
+        const user = await updateUserName(context.user.id, name.trim());
+        return { success: true, userName: user.name };
+      } else {
+        return {
+          success: false,
+          code: "invalid_name",
+          message: "Must use a valid name",
+        };
+      }
     },
   });
 
