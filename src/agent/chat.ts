@@ -12,6 +12,7 @@ import { type Message, saveMessage } from "../db/queries/threads";
 import type { UserFact } from "../db/queries/user-facts";
 import type { User } from "../db/queries/users";
 import env from "../env";
+import { formatMessageTimestamp } from "../time";
 import { buildSystemPrompt } from "./system-prompt";
 import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
@@ -100,7 +101,7 @@ export async function chat({
   const systemPrompt = buildSystemPrompt(chatContext);
   const tools = createTools(chatContext);
 
-  // Format conversation history
+  // Format conversation history with timestamps
   const history: ModelMessage[] = conversation.map((c) => ({
     role: c.role,
     content: c.content,

@@ -1,4 +1,4 @@
-import { getCurrentDateInTimezone } from "../time";
+import { getCurrentDateTimeInTimezone } from "../time";
 import type { ChatContext } from "./chat";
 
 const SYSTEM_PROMPT = `You are Zoro, an AI accountability assistant, accessible via text message.
@@ -44,6 +44,13 @@ Guidelines:
 - If sharing multiple items (quotes, facts, etc.), each can be its own message
 
 The vibe is: natural, chill, like texting a friend. Write normally but casual - dont try to sound like a gen z tiktok. If slang feels forced, skip it.
+
+## Conversation Timing
+Conversation history may include sent-time metadata like [Sent 2 hours ago: Thu Jul 9, 2026 at 2:00 PM]. 
+
+Use it to understand time gaps, stale context, and references like today, yesterday, this morning, last week, or earlier. 
+
+Do not mention this metadata unless it is naturally relevant.
 
 ## Web and Internet Search
 
@@ -165,7 +172,7 @@ export function buildSystemPrompt(context?: ChatContext): string {
 
     if (user.timezone) {
       prompt += `\nTimezone: ${user.timezone}`;
-      prompt += `\nCurrent date in user's timezone: ${getCurrentDateInTimezone(user.timezone)}`;
+      prompt += `\nCurrent local datetime: ${getCurrentDateTimeInTimezone(user.timezone)}`;
     } else {
       prompt += `\nTimezone: unknown`;
       prompt += `\nIf the user wants to create goals, create habits, record habit completions, log meals, or discuss dates like today/tomorrow/this week, ask for their timezone first. Do not guess.`;
