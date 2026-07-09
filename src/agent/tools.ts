@@ -2,7 +2,7 @@ import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import { REACTIONS } from "../blooio/types";
 import { recordHabitCompletion } from "../db/queries/habits";
-import { updateTimezone } from "../db/queries/users";
+import { updateTimezone, updateUserName } from "../db/queries/users";
 import { isValidTimeZone } from "../time";
 import type { ChatContext } from "./chat";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
@@ -47,6 +47,17 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     }),
     execute: async ({ query }) => {
       return await searchWeb(query);
+    },
+  });
+
+  const setUserName = tool({
+    description: "Update the user's name.",
+    inputSchema: z.object({
+      name: z.string().min(1),
+    }),
+    execute: async ({ name }) => {
+      const user = await updateUserName(context.user.id, name);
+      return { success: true, userName: user.name };
     },
   });
 
@@ -143,6 +154,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
   });
 
   const tools = {
+    setUserName,
     setUserTimezone,
     logMeal: logMealTool,
     manageGoal: manageGoalTool,

@@ -151,12 +151,16 @@ export function buildSystemPrompt(context?: ChatContext): string {
   let prompt = SYSTEM_PROMPT;
 
   // Add user info if available
-  prompt += `\n\n## About the person you're talking to:`;
   if (context?.user) {
+    prompt += `\n\n## About the person you're talking to:`;
     const user = context.user;
 
     if (user.name) {
       prompt += `\nName: ${user.name}`;
+    } else {
+      prompt += `\nName is currently unknown.`;
+      prompt += `\nAsk for the user's name soon, but only when it fits naturally. Do not interrupt urgent/helpful replies just to ask.`;
+      prompt += `\nUse setUserName tool when the user tells you their name or clearly confirms what they want to be called.\n`;
     }
 
     if (user.timezone) {
@@ -166,9 +170,6 @@ export function buildSystemPrompt(context?: ChatContext): string {
       prompt += `\nTimezone: unknown`;
       prompt += `\nIf the user wants to create goals, create habits, record habit completions, log meals, or discuss dates like today/tomorrow/this week, ask for their timezone first. Do not guess.`;
     }
-  } else {
-    prompt += `\n\n## About the person you're talking to:`;
-    prompt += `\nYou don't know their name yet. Ask it and save it if it comes up naturally.`;
   }
 
   // Add any known facts about the user

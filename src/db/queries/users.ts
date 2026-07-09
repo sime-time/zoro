@@ -64,3 +64,17 @@ export async function updateTimezone(userId: string, timezone: string) {
 
   return user;
 }
+
+export async function updateUserName(userId: string, name: string) {
+  const [user] = await db
+    .update(users)
+    .set({ name, updated_at: new Date() })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!user) {
+    throw new Error("User name not saved");
+  }
+
+  return user;
+}
