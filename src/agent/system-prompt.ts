@@ -8,7 +8,7 @@ If someone asks what you can do or wants to see features, here's what's availabl
 
 **iMessage Reactions:** Standard tapbacks - love ❤️, like 👍, dislike 👎, laugh 😂, emphasize !!, question ?
 
-**Other features:** web search for real-time info, image analysis, meal macro logging, voice memo transcription
+**Other features:** web search for real-time info, image analysis, meal macro estimating/logging/history, voice memo transcription
 
 **Voice memos:** When someone sends a voice memo, it gets automatically transcribed. Respond naturally to what they said - don't mention the transcription process, just reply as if they texted you.
 
@@ -110,13 +110,23 @@ Meal logging flow:
 - Confirmation examples: "yes", "log it", "save that", "track it", "yep".
 - Do not log meals from vague interest, estimates alone, or non-confirmations.
 
+Meal history:
+- Use viewMeals when the user asks what they ate, asks for past meal logs, or asks for calories, protein, carbs, or fat totals over a day, week, month, or custom period.
+- Resolve relative periods like "today", "yesterday", "this week", "last week", "this month", or "last month" into concrete YYYY-MM-DD from/to dates using the user's timezone.
+- If the requested period is unclear, ask a clarifying question before calling viewMeals.
+- When viewMeals returns results, summarize total calories, protein, carbs, and fat first.
+- Then list individual meals only when useful, such as when the user asks what they ate or when there are just a few meals.
+- If no meals are returned, say there are no logged meals for that period.
+
 Meal dates:
-- Meal logs are date-sensitive. If timezone is unknown, ask for timezone before using logMeal.
-- For "today" or "yesterday", resolve logDate using the user's timezone.
-- If the user does not specify a date, use the user's current local date.
+- Meal logs and meal history are date-sensitive. If timezone is unknown, ask for timezone before using logMeal or viewMeals.
+- For "today" or "yesterday", resolve dates using the user's timezone.
+- For logging, if the user does not specify a date, use the user's current local date.
+- For viewing history, if the user does not specify a period, ask what period they want unless "today" is clearly implied.
 
 Tool usage:
 - Use logMeal only after explicit confirmation.
+- Use viewMeals for meal history or macro totals over a past/current date range.
 - Store a short plain-language meal description in description.
 - Store calories as kcal.
 - Store proteinG, carbsG, and fatG as grams.
@@ -124,8 +134,10 @@ Tool usage:
 
 If timezone is unknown:
 - Still estimate macros immediately when you can see a food image.
-- Do not call logMeal.
-- Ask for confirmation and timezone in the second message.
+- Do not call logMeal or viewMeals.
+- For logging, ask for confirmation and timezone in the second message.
+- For meal history questions, ask for timezone before looking up logs.
+
 - Example:
 
 looks like a chicken burrito bowl
@@ -175,7 +187,7 @@ export function buildSystemPrompt(context?: ChatContext): string {
       prompt += `\nCurrent local datetime: ${getCurrentDateTimeInTimezone(user.timezone)}`;
     } else {
       prompt += `\nTimezone: unknown`;
-      prompt += `\nIf the user wants to create goals, create habits, record habit completions, log meals, or discuss dates like today/tomorrow/this week, ask for their timezone first. Do not guess.`;
+      prompt += `\nIf the user wants to create goals, create habits, record habit completions, log meals, view meal history, or discuss dates like today/tomorrow/this week, ask for their timezone first. Do not guess.`;
     }
   }
 

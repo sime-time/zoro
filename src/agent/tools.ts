@@ -9,6 +9,7 @@ import { logMeal, logMealSchema } from "./workflows/log-meal";
 import { manageGoal, manageGoalSchema } from "./workflows/manage-goal";
 import { manageHabit, manageHabitSchema } from "./workflows/manage-habit";
 import { searchWeb } from "./workflows/search-web";
+import { viewMealSchema, viewMeals } from "./workflows/view-meals";
 
 // Every time-related tool starts with this guard
 function requireTimezone(context: ChatContext) {
@@ -100,6 +101,30 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
+  const viewMealsTool = tool({
+    description:
+      "View a user's saved meal logs and macro totals for a specific local date range. Use this when the user asks what they ate, asks for past meal logs, or asks for calories, protein, carbs, or fat totals over a day, week, month, or custom period. Requires the user's timezone before use. Resolve relative dates like today, yesterday, this week, or last month into YYYY-MM-DD dates using the user's timezone. If the requested period is unclear, ask a clarifying question before calling this tool.",
+    inputSchema: viewMealSchema,
+    execute: async ({ from, to }) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      if (from > to) {
+        return {
+          success: false,
+          code: "invalid_date_range",
+          message: "from must be before or equal to to",
+        };
+      }
+
+      return await viewMeals({
+        userId: context.user.id,
+        from,
+        to,
+      });
+    },
+  });
+
   const manageGoalTool = tool({
     description:
       "Create or update a user's goal. Use this when the user explicitly wants to start tracking a goal, change goal details, mark a goal complete, or archive a goal. Requires the user's timezone before use. For updates, completions, or archives, use the goal ID from the active goals listed in context. Do not guess if the goal is ambiguous; ask a clarifying question instead.",
@@ -165,6 +190,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     setUserName,
     setUserTimezone,
     logMeal: logMealTool,
+    viewMeals: viewMealsTool,
     manageGoal: manageGoalTool,
     manageHabit: manageHabitTool,
     recordHabitCompletion: recordHabitCompletionTool,
