@@ -25,33 +25,6 @@ export const goalStatus = pgEnum("goal_status", [
   "archived",
 ]);
 
-export const habitStatus = pgEnum("habit_status", [
-  "active",
-  "paused",
-  "archived",
-]);
-
-export const habitTargetPeriod = pgEnum("habit_target_period", [
-  "day",
-  "week",
-  "month",
-]);
-
-export const habitEventStatus = pgEnum("habit_event_status", [
-  "completed",
-  "skipped",
-]);
-
-export const weekDays = pgEnum("weekdays", [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-]);
-
 const timestamps = () => ({
   created_at: timestamp().notNull().defaultNow(),
   updated_at: timestamp()
@@ -71,86 +44,6 @@ export const users = pgTable(
     ...timestamps(),
   },
   (table) => [uniqueIndex("users_phone_idx").on(table.phone)],
-);
-
-export const userFacts = pgTable(
-  "user_facts",
-  {
-    id: uuid().defaultRandom().primaryKey(),
-    user_id: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    key: text().notNull(),
-    value: text().notNull(),
-    ...timestamps(),
-  },
-  (table) => [
-    index("user_facts_user_idx").on(table.user_id),
-    uniqueIndex("user_facts_user_key_idx").on(table.user_id, table.key),
-  ],
-);
-
-export const goals = pgTable(
-  "goals",
-  {
-    id: uuid().defaultRandom().primaryKey(),
-    user_id: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    title: text().notNull(),
-    description: text(),
-    motivation: text(),
-    status: goalStatus().notNull().default("active"),
-    deadline: date(),
-    ...timestamps(),
-  },
-  (table) => [
-    index("goals_user_idx").on(table.user_id),
-    index("goals_user_status_idx").on(table.user_id, table.status),
-  ],
-);
-
-export const habits = pgTable(
-  "habits",
-  {
-    id: uuid().defaultRandom().primaryKey(),
-    user_id: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    name: text().notNull(),
-    description: text(),
-    target_count: integer().notNull().default(1),
-    target_period: habitTargetPeriod().notNull().default("day"),
-    scheduled_days: weekDays().array(),
-    status: habitStatus().notNull().default("active"),
-    ...timestamps(),
-  },
-  (table) => [
-    index("habit_user_idx").on(table.user_id),
-    index("habit_user_status_idx").on(table.user_id, table.status),
-  ],
-);
-
-export const habitEvents = pgTable(
-  "habit_events",
-  {
-    id: uuid().defaultRandom().primaryKey(),
-    user_id: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    habit_id: uuid()
-      .notNull()
-      .references(() => habits.id, { onDelete: "cascade" }),
-    status: habitEventStatus().notNull(),
-    occurred: date().notNull(),
-    note: text(),
-    ...timestamps(),
-  },
-  (table) => [
-    index("habit_events_user_idx").on(table.user_id),
-    index("habit_events_habit_date_idx").on(table.habit_id, table.occurred),
-    index("habit_events_user_date_idx").on(table.user_id, table.occurred),
-  ],
 );
 
 export const threads = pgTable(
@@ -202,6 +95,26 @@ export const messages = pgTable(
   (table) => [
     index("messages_thread_idx").on(table.thread_id),
     index("messages_user_thread_idx").on(table.user_id, table.thread_id),
+  ],
+);
+
+export const goals = pgTable(
+  "goals",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text().notNull(),
+    description: text(),
+    motivation: text(),
+    status: goalStatus().notNull().default("active"),
+    deadline: date(),
+    ...timestamps(),
+  },
+  (table) => [
+    index("goals_user_idx").on(table.user_id),
+    index("goals_user_status_idx").on(table.user_id, table.status),
   ],
 );
 
