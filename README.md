@@ -76,12 +76,12 @@ MVP focus:
 
 Out of core MVP scope:
 
-- Habit tracking as a separate product concept.
+- Habit tracking as a checkbox/streak product concept.
 - Meal and macro tracking.
 - Productivity dashboard UI.
-- Complex recurrence rules and recurring commitment templates.
+- Complex recurrence rules.
 
-Habits can return later as recurring commitment templates. Meal tracking can return later as an optional module, but neither should define Zoro's core identity.
+Routines replace habits as recurring commitment templates. Meal tracking remains an optional module, but neither routines nor meals should define Zoro's core identity.
 
 ## Core Data Model
 
@@ -93,9 +93,39 @@ Core tables:
 - `threads`, `participants`, `messages` — text conversation history and traceability.
 - `goals` — longer-term direction, motivation, milestones, and next action.
 - `memories` — typed, sourced, confidence-scored context that should change future behavior.
+- `routines` — recurring intentions that generate concrete commitments.
 - `commitments` — concrete promises or intended actions kept alive until resolved.
 - `commitment_events` — append-only history of creation, reminders, misses, completions, blockers, and reschedules.
 - `scheduled_messages` — durable queue for reminders, check-ins, and follow-ups.
+
+Routines do not record completion directly. They generate commitments, and those commitments receive events and scheduled messages.
+
+```txt
+routine
+  ↓ generates
+commitments
+  ↓ get
+scheduled_messages
+```
+
+Example:
+
+```txt
+Routine:
+Gym 3x/week
+
+Generated commitments:
+- Gym session 1 this week
+- Gym session 2 this week
+- Gym session 3 this week
+
+Scheduled messages:
+- reminder before a session is due
+- check-in after due time
+- follow-up if unresolved
+```
+
+`scheduled_messages` should not be recurring rows. They are one-off outbound texts linked to concrete commitments. A periodic routine generator creates missing commitments for the current period, then normal scheduling policy creates one-off scheduled messages for each commitment.
 
 `memories` replaces generic `user_facts`. A memory is not just a key/value fact; it has type, source, confidence, importance, and lifecycle fields so stale or contaminated context does not quietly pollute the system prompt.
 

@@ -1,6 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "../client";
-import { type goalStatus, goals } from "../schema";
+import type { goalStatus } from "../enums";
+import { goals } from "../schema";
 
 export type Goal = typeof goals.$inferSelect;
 export type GoalStatus = (typeof goalStatus.enumValues)[number];
@@ -66,17 +67,15 @@ export async function updateGoal({
   };
 
   if (title !== undefined && title.trim() !== "") updates.title = title;
+  if (deadline !== undefined) updates.deadline = deadline;
+  if (status !== undefined) updates.status = status;
 
   if (description !== undefined) {
     updates.description = description?.trim() || null;
   }
-
   if (motivation !== undefined) {
     updates.motivation = motivation?.trim() || null;
   }
-
-  if (deadline !== undefined) updates.deadline = deadline;
-  if (status !== undefined) updates.status = status;
 
   const [goal] = await db
     .update(goals)
