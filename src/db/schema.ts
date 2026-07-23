@@ -223,7 +223,7 @@ export const commitmentEvents = pgTable(
     user_id: uuid()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    message_id: uuid().references(() => messages.id, {
+    source_message_id: uuid().references(() => messages.id, {
       onDelete: "set null",
     }),
 
@@ -255,12 +255,14 @@ export const scheduledMessages = pgTable(
     commitment_id: uuid().references(() => commitments.id, {
       onDelete: "cascade",
     }),
+    message_id: uuid().references(() => messages.id, { onDelete: "set null" }),
 
     type: scheduledMessageType().notNull(),
     scheduled_for: timestamp({ withTimezone: true }).notNull(),
     status: scheduledMessageStatus().notNull().default("scheduled"),
     content: text(),
     sent_at: timestamp({ withTimezone: true }),
+    last_error: text(),
     ...timestamps(),
   },
   (table) => [

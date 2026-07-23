@@ -12,7 +12,6 @@ import { type Message, saveMessage } from "../db/queries/threads";
 import type { UserFact } from "../db/queries/user-facts";
 import type { User } from "../db/queries/users";
 import env from "../env";
-import { formatMessageTimestamp } from "../time";
 import { buildSystemPrompt } from "./system-prompt";
 import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
