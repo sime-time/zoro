@@ -286,8 +286,8 @@ export const memories = pgTable("memories", {
   }),
 
   type: memoryType().notNull(),
-  subject: text().notNull(),
-  content: text().notNull(),
+  subject: text().notNull(), // short label/category for memory
+  content: text().notNull(), // actual remembered statement
 
   importance: memoryImportance().notNull().default("normal"),
   is_active: boolean().notNull().default(true),

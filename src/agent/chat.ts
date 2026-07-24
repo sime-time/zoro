@@ -7,9 +7,9 @@ import {
 } from "ai";
 import type { MessageService, Reaction } from "../blooio/types";
 import type { Goal } from "../db/queries/goals";
-import type { Habit } from "../db/queries/habits";
+import type { Memory } from "../db/queries/memories";
+import type { Routine } from "../db/queries/routines";
 import { type Message, saveMessage } from "../db/queries/threads";
-import type { UserFact } from "../db/queries/user-facts";
 import type { User } from "../db/queries/users";
 import env from "../env";
 import { buildSystemPrompt } from "./system-prompt";
@@ -18,9 +18,9 @@ import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
 
 export interface ChatContext {
   user: User;
-  facts?: UserFact[];
+  memories?: Memory[];
   goals?: Goal[];
-  habits?: Habit[];
+  routines?: Routine[];
   isGroupChat: boolean;
   // participantNames: string[];
   service?: MessageService;

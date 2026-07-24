@@ -1,9 +1,11 @@
 import { chat } from "../agent/chat";
 import { extractAndSaveUserFacts } from "../agent/workflows/extract-facts";
+import { getUnresolvedCommitments } from "../db/queries/commitments";
 import { getActiveGoals } from "../db/queries/goals";
-import { getActiveHabits } from "../db/queries/habits";
+import { getActiveMemories } from "../db/queries/memories";
+import { getActiveRoutines } from "../db/queries/routines";
+import { getPendingScheduledMessages } from "../db/queries/scheduled";
 import { getConversation, saveMessage } from "../db/queries/threads";
-import { getUserFacts } from "../db/queries/user-facts";
 import { findOrCreateUser } from "../db/queries/users";
 import {
   markAsRead,
@@ -64,17 +66,21 @@ export async function handleInboundMessage({
     const phoneNumber = sender;
 
     const user = await findOrCreateUser(phoneNumber);
-    const facts = await getUserFacts(user.id);
-
-    // Get active goals and habits
+    const memories = await getActiveMemories({ userId: user.id });
     const goals = await getActiveGoals(user.id);
-    const habits = await getActiveHabits(user.id);
+    const routines = await getActiveRoutines(user.id);
+    const commitments = await getUnresolvedCommitments(user.id);
 
     const { conversation, thread } = await getConversation({
       phoneNumber,
       blooioChatId,
       isGroup,
       limit: 20,
+    });
+
+    const scheduledMessages = await getPendingScheduledMessages({
+      userId: user.id,
+      threadId: thread.id,
     });
 
     // Get agent's response
