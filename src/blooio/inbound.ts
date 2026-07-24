@@ -94,6 +94,7 @@ export async function handleInboundMessage({
       conversation,
       chatContext: {
         user,
+        thread,
         memories,
         goals,
         routines,

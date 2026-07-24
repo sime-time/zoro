@@ -11,6 +11,7 @@ import type { Goal } from "../db/queries/goals";
 import type { Memory } from "../db/queries/memories";
 import type { Routine } from "../db/queries/routines";
 import type { ScheduledMessage } from "../db/queries/scheduled";
+import type { Thread } from "../db/queries/threads";
 import { type Message, saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
@@ -20,6 +21,7 @@ import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
 
 export interface ChatContext {
   user: User;
+  thread: Thread;
   memories?: Memory[];
   goals?: Goal[];
   routines?: Routine[];
