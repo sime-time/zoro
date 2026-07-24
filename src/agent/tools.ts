@@ -10,6 +10,10 @@ import {
   recordCommitment,
   recordCommitmentSchema,
 } from "./workflows/record-commitment";
+import {
+  resolveCommitment,
+  resolveCommitmentSchema,
+} from "./workflows/resolve-commitment";
 import { searchWeb } from "./workflows/search-web";
 import { viewMealSchema, viewMeals } from "./workflows/view-meals";
 
@@ -40,7 +44,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
   const searchWebTool = tool({
     description:
-      "Search the web for current or external information. Use this for facts that may be recent, unknown, location-specific, or not available from conversation context. Do not use it for private user data already available in context.",
+      "Search the web for current or external information. Use this for recent, unknown, location-specific, or verifiable public information. Do not use it for private user data already available in context.",
     inputSchema: z.object({
       query: z
         .string()
@@ -141,13 +145,22 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
   const recordCommitmentTool = tool({
     description:
-      "Record a concrete user commitment with a resolved due datetime. Use only when the user has made a clear promise/action and the due time has been resolved using the user's saved timezone. For vague intentions like 'I should work out more', ask one clarifying question instead of calling this tool.",
+      "Record a concrete user commitment with a resolved due datetime. Use only when the user has made a clear promise/action and the due time has been resolved using the user's saved timezone. For vague intentions like 'I should work out more', ask one clarifying question instead of calling this tool. Use create/update routine instead for recurring quotas like 'gym 3x/week'.",
     inputSchema: recordCommitmentSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);
       if (timezoneError) return timezoneError;
 
       return await recordCommitment(input, context);
+    },
+  });
+
+  const resolveCommitmentTool = tool({
+    description:
+      "Resolve an existing commitment when the user clearly says it was completed, missed, blocked, or cancelled. Use the commitment ID from unresolved commitments context. If the outcome is unclear, ask one clarifying question instead of calling this tool.",
+    inputSchema: resolveCommitmentSchema,
+    execute: async (input) => {
+      return await resolveCommitment(input, context);
     },
   });
 
@@ -159,6 +172,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     viewMeals: viewMealsTool,
     manageGoal: manageGoalTool,
     recordCommitment: recordCommitmentTool,
+    resolveCommitment: resolveCommitmentTool,
   };
 
   const conditionalTools =

@@ -25,10 +25,11 @@ export async function resolveCommitment(
   input: ResolveCommitmentInput,
   context: ChatContext,
 ) {
-  const cancelledScheduledMessages =
-    await cancelScheduledMessagesForCommitment({
+  const cancelledScheduledMessages = await cancelScheduledMessagesForCommitment(
+    {
       commitmentId: input.commitmentId,
-    });
+    },
+  );
 
   const commitment = await resolveCommitmentRow({
     userId: context.user.id,
