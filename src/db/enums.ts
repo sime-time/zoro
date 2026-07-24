@@ -24,7 +24,6 @@ export const commitmentStatus = pgEnum("commitment_status", [
   "in_progress",
   "completed",
   "missed",
-  "blocked",
   "rescheduled",
   "cancelled",
 ]);
@@ -35,7 +34,6 @@ export const commitmentEventType = pgEnum("commitment_event_type", [
   "started",
   "completed",
   "missed",
-  "blocked", // obstacle prevents it, needs recovery plan
   "rescheduled",
   "cancelled",
   "reopened",

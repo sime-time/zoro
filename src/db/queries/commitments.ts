@@ -134,7 +134,7 @@ export async function getUnresolvedCommitments(
     .where(
       and(
         eq(commitments.user_id, userId),
-        inArray(commitments.status, ["pending", "blocked", "in_progress"]),
+        inArray(commitments.status, ["pending", "in_progress"]),
       ),
     )
     .orderBy(asc(commitments.due_at), asc(commitments.created_at));

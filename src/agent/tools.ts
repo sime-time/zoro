@@ -11,10 +11,18 @@ import {
   recordCommitmentSchema,
 } from "./workflows/record-commitment";
 import {
+  rescheduleCommitment,
+  rescheduleCommitmentSchema,
+} from "./workflows/reschedule-commitment";
+import {
   resolveCommitment,
   resolveCommitmentSchema,
 } from "./workflows/resolve-commitment";
 import { searchWeb } from "./workflows/search-web";
+import {
+  updateCommitment,
+  updateCommitmentSchema,
+} from "./workflows/update-commitment";
 import { viewMealSchema, viewMeals } from "./workflows/view-meals";
 
 // Every time-related tool starts with this guard
@@ -164,6 +172,30 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
+  const rescheduleCommitmentTool = tool({
+    description:
+      "Reschedule an existing commitment to a new resolved due datetime. Use when the user clearly recommits to a different time. Requires the user's timezone before use. Use the commitment ID from unresolved commitments context. If the new time is vague, ask one clarifying question instead of calling this tool.",
+    inputSchema: rescheduleCommitmentSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await rescheduleCommitment(input, context);
+    },
+  });
+
+  const updateCommitmentTool = tool({
+    description:
+      "Update details of an existing unresolved commitment, such as title, details, motivation, success criteria, linked goal, or due datetime. Use the commitment ID from unresolved commitments context. If changing the due datetime, resolve it using the user's saved timezone before calling. If the requested change is unclear, ask one clarifying question instead of calling this tool.",
+    inputSchema: updateCommitmentSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await updateCommitment(input, context);
+    },
+  });
+
   const tools = {
     setUserName,
     setUserTimezone,
@@ -173,6 +205,8 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     manageGoal: manageGoalTool,
     recordCommitment: recordCommitmentTool,
     resolveCommitment: resolveCommitmentTool,
+    rescheduleCommitment: rescheduleCommitmentTool,
+    updateCommitment: updateCommitmentTool,
   };
 
   const conditionalTools =

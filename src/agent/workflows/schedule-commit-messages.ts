@@ -16,10 +16,11 @@ export async function scheduleCommitmentMessages({
   userId: string;
   threadId: string;
   commitmentId: string;
-  dueAt: Date;
+  dueAt: Date | null | undefined;
   now?: Date;
 }): Promise<ScheduledMessage[]> {
-  // Randomize times within a range
+  if (!dueAt) return [];
+
   const schedule = [
     {
       type: "reminder" as const,

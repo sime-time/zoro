@@ -2,9 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "c61fee6e-bdac-4d40-967e-a9fb4a954ea1",
-  "prevIds": [
-    "944dbe26-48f0-4e37-aeab-42a465e82aa9"
-  ],
+  "prevIds": ["944dbe26-48f0-4e37-aeab-42a465e82aa9"],
   "ddl": [
     {
       "values": [
@@ -37,22 +35,13 @@
       "schema": "public"
     },
     {
-      "values": [
-        "active",
-        "paused",
-        "completed",
-        "archived"
-      ],
+      "values": ["active", "paused", "completed", "archived"],
       "name": "goal_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "low",
-        "normal",
-        "high"
-      ],
+      "values": ["low", "normal", "high"],
       "name": "memory_importance",
       "entityType": "enums",
       "schema": "public"
@@ -72,43 +61,25 @@
       "schema": "public"
     },
     {
-      "values": [
-        "user",
-        "assistant",
-        "system"
-      ],
+      "values": ["user", "assistant", "system"],
       "name": "message_role",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "day",
-        "week",
-        "month"
-      ],
+      "values": ["day", "week", "month"],
       "name": "routine_target_period",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "scheduled",
-        "processing",
-        "sent",
-        "cancelled",
-        "failed"
-      ],
+      "values": ["scheduled", "processing", "sent", "cancelled", "failed"],
       "name": "scheduled_message_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "reminder",
-        "check_in",
-        "follow_up"
-      ],
+      "values": ["reminder", "check_in", "follow_up"],
       "name": "scheduled_message_type",
       "entityType": "enums",
       "schema": "public"
@@ -2136,14 +2107,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "commitment_id"
-      ],
+      "columns": ["commitment_id"],
       "schemaTo": "public",
       "tableTo": "commitments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "commitment_events_commitment_id_commitments_id_fkey",
@@ -2153,14 +2120,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "commitment_events_user_id_users_id_fkey",
@@ -2170,14 +2133,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_message_id"
-      ],
+      "columns": ["source_message_id"],
       "schemaTo": "public",
       "tableTo": "messages",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "commitment_events_source_message_id_messages_id_fkey",
@@ -2187,14 +2146,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "commitments_user_id_users_id_fkey",
@@ -2204,14 +2159,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "commitments_thread_id_threads_id_fkey",
@@ -2221,14 +2172,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goal_id"
-      ],
+      "columns": ["goal_id"],
       "schemaTo": "public",
       "tableTo": "goals",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "commitments_goal_id_goals_id_fkey",
@@ -2238,14 +2185,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_message_id"
-      ],
+      "columns": ["source_message_id"],
       "schemaTo": "public",
       "tableTo": "messages",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "commitments_source_message_id_messages_id_fkey",
@@ -2255,14 +2198,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "routine_id"
-      ],
+      "columns": ["routine_id"],
       "schemaTo": "public",
       "tableTo": "routines",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "commitments_routine_id_routines_id_fkey",
@@ -2272,14 +2211,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goals_user_id_users_id_fkey",
@@ -2289,14 +2224,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "meals_user_id_users_id_fkey",
@@ -2306,14 +2237,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "memories_user_id_users_id_fkey",
@@ -2323,14 +2250,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_message_id"
-      ],
+      "columns": ["source_message_id"],
       "schemaTo": "public",
       "tableTo": "messages",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "memories_source_message_id_messages_id_fkey",
@@ -2340,14 +2263,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_user_id_users_id_fkey",
@@ -2357,14 +2276,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "messages_thread_id_threads_id_fkey",
@@ -2374,14 +2289,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_user_id_users_id_fkey",
@@ -2391,14 +2302,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "participants_thread_id_threads_id_fkey",
@@ -2408,14 +2315,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "routines_user_id_users_id_fkey",
@@ -2425,14 +2328,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goal_id"
-      ],
+      "columns": ["goal_id"],
       "schemaTo": "public",
       "tableTo": "goals",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "routines_goal_id_goals_id_fkey",
@@ -2442,14 +2341,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "scheduled_messages_user_id_users_id_fkey",
@@ -2459,14 +2354,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "thread_id"
-      ],
+      "columns": ["thread_id"],
       "schemaTo": "public",
       "tableTo": "threads",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "scheduled_messages_thread_id_threads_id_fkey",
@@ -2476,14 +2367,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "commitment_id"
-      ],
+      "columns": ["commitment_id"],
       "schemaTo": "public",
       "tableTo": "commitments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "scheduled_messages_commitment_id_commitments_id_fkey",
@@ -2493,14 +2380,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "message_id"
-      ],
+      "columns": ["message_id"],
       "schemaTo": "public",
       "tableTo": "messages",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "scheduled_messages_message_id_messages_id_fkey",
@@ -2509,9 +2392,7 @@
       "table": "scheduled_messages"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "commitment_events_pkey",
       "schema": "public",
@@ -2519,9 +2400,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "commitments_pkey",
       "schema": "public",
@@ -2529,9 +2408,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goals_pkey",
       "schema": "public",
@@ -2539,9 +2416,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meals_pkey",
       "schema": "public",
@@ -2549,9 +2424,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "memories_pkey",
       "schema": "public",
@@ -2559,9 +2432,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "messages_pkey",
       "schema": "public",
@@ -2569,9 +2440,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "participants_pkey",
       "schema": "public",
@@ -2579,9 +2448,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "routines_pkey",
       "schema": "public",
@@ -2589,9 +2456,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "scheduled_messages_pkey",
       "schema": "public",
@@ -2599,9 +2464,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "threads_pkey",
       "schema": "public",
@@ -2609,9 +2472,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
