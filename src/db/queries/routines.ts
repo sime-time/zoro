@@ -56,6 +56,7 @@ export async function createRoutine({
 export async function updateRoutine({
   userId,
   routineId,
+  goalId,
   title,
   description,
   targetCount,
@@ -64,6 +65,7 @@ export async function updateRoutine({
 }: {
   userId: string;
   routineId: string;
+  goalId?: string;
   title?: string;
   description?: string | null;
   targetCount?: number;
@@ -92,6 +94,7 @@ export async function updateRoutine({
 
   if (targetPeriod !== undefined) updates.target_period = targetPeriod;
   if (isActive !== undefined) updates.is_active = isActive;
+  if (goalId !== undefined) updates.goal_id = goalId;
 
   const [routine] = await db
     .update(routines)

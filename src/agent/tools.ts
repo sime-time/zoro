@@ -5,24 +5,13 @@ import { updateTimezone, updateUserName } from "../db/queries/users";
 import { isValidTimeZone } from "../time";
 import type { ChatContext } from "./chat";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
+import {
+  manageCommitment,
+  manageCommitmentSchema,
+} from "./workflows/manage-commitment";
 import { manageGoal, manageGoalSchema } from "./workflows/manage-goal";
-import {
-  recordCommitment,
-  recordCommitmentSchema,
-} from "./workflows/record-commitment";
-import {
-  rescheduleCommitment,
-  rescheduleCommitmentSchema,
-} from "./workflows/reschedule-commitment";
-import {
-  resolveCommitment,
-  resolveCommitmentSchema,
-} from "./workflows/resolve-commitment";
+import { manageRoutine, manageRoutineSchema } from "./workflows/manage-routine";
 import { searchWeb } from "./workflows/search-web";
-import {
-  updateCommitment,
-  updateCommitmentSchema,
-} from "./workflows/update-commitment";
 import { viewMealSchema, viewMeals } from "./workflows/view-meals";
 
 // Every time-related tool starts with this guard
@@ -151,48 +140,27 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
-  const recordCommitmentTool = tool({
+  const manageCommitmentTool = tool({
     description:
-      "Record a concrete user commitment with a resolved due datetime. Use only when the user has made a clear promise/action and the due time has been resolved using the user's saved timezone. For vague intentions like 'I should work out more', ask one clarifying question instead of calling this tool. Use create/update routine instead for recurring quotas like 'gym 3x/week'.",
-    inputSchema: recordCommitmentSchema,
+      "Create, update, complete, miss, cancel, or reschedule a user's concrete commitment. Use this for specific promises/actions with a resolved due datetime, such as 'I'll submit the form by 6pm'. Use commitment IDs from unresolved commitments context for updates/resolution/reschedules. Resolve relative times using the user's saved timezone before calling. Do not use for vague intentions like 'I should work out more'; ask one clarifying question instead. Do not use for recurring quotas like 'gym 3x/week'; use routine management instead.",
+    inputSchema: manageCommitmentSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);
       if (timezoneError) return timezoneError;
 
-      return await recordCommitment(input, context);
+      return await manageCommitment(input, context);
     },
   });
 
-  const resolveCommitmentTool = tool({
+  const manageRoutineTool = tool({
     description:
-      "Resolve an existing commitment when the user clearly says it was completed, missed, blocked, or cancelled. Use the commitment ID from unresolved commitments context. If the outcome is unclear, ask one clarifying question instead of calling this tool.",
-    inputSchema: resolveCommitmentSchema,
-    execute: async (input) => {
-      return await resolveCommitment(input, context);
-    },
-  });
-
-  const rescheduleCommitmentTool = tool({
-    description:
-      "Reschedule an existing commitment to a new resolved due datetime. Use when the user clearly recommits to a different time. Requires the user's timezone before use. Use the commitment ID from unresolved commitments context. If the new time is vague, ask one clarifying question instead of calling this tool.",
-    inputSchema: rescheduleCommitmentSchema,
+      "Create, update, pause, or archive a recurring routine that generates future commitments. Use this for recurring quotas or templates like 'gym 3x/week', 'write every day', or 'meal prep twice a week'. Do not use this for a one-off promise with a concrete due datetime; use manageCommitment instead. Requires the user's timezone because routines generate commitments in local day/week/month periods.",
+    inputSchema: manageRoutineSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);
       if (timezoneError) return timezoneError;
 
-      return await rescheduleCommitment(input, context);
-    },
-  });
-
-  const updateCommitmentTool = tool({
-    description:
-      "Update details of an existing unresolved commitment, such as title, details, motivation, success criteria, linked goal, or due datetime. Use the commitment ID from unresolved commitments context. If changing the due datetime, resolve it using the user's saved timezone before calling. If the requested change is unclear, ask one clarifying question instead of calling this tool.",
-    inputSchema: updateCommitmentSchema,
-    execute: async (input) => {
-      const timezoneError = requireTimezone(context);
-      if (timezoneError) return timezoneError;
-
-      return await updateCommitment(input, context);
+      return await manageRoutine(input, context);
     },
   });
 
@@ -203,10 +171,8 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     logMeal: logMealTool,
     viewMeals: viewMealsTool,
     manageGoal: manageGoalTool,
-    recordCommitment: recordCommitmentTool,
-    resolveCommitment: resolveCommitmentTool,
-    rescheduleCommitment: rescheduleCommitmentTool,
-    updateCommitment: updateCommitmentTool,
+    manageCommitment: manageCommitmentTool,
+    manageRoutine: manageRoutineTool,
   };
 
   const conditionalTools =

@@ -1,134 +1,115 @@
-import z from "zod";
-import { createHabit, updateHabit } from "../../db/queries/habits";
-import { habitTargetPeriod, weekDays } from "../../db/schema";
+import { z } from "zod";
+import { routineTargetPeriod } from "../../db/enums";
+import { createRoutine, updateRoutine } from "../../db/queries/routines";
 import type { ChatContext } from "../chat";
 
-export const manageHabitSchema = z.object({
+export const manageRoutineSchema = z.object({
   action: z
     .enum(["create", "update", "pause", "archive"])
-    .describe("The habit management action to perform."),
-  habitId: z
+    .describe("The routine management action to perform."),
+  routineId: z
     .string()
     .optional()
     .describe(
-      "Do not include habit ID when creating a new habit. Use an existing habit ID for updates or archive actions.",
+      "Do not include routine ID when creating a new routine. Use an existing routine ID for updates or archive actions.",
     ),
-  name: z
+  title: z
     .string()
+    .trim()
+    .min(1)
     .optional()
-    .describe("Short habit name, like 'gym', 'meditation', or 'writing'."),
+    .describe(
+      "Short recurring intention/template, like 'Gym' or 'Write'. Required when action is create.",
+    ),
   description: z
     .string()
     .optional()
-    .describe(
-      "Optional extra context about the habit, like when or why the user wants to do it.",
-    ),
+    .describe("Optional details about the recurring intention."),
   targetCount: z
     .number()
     .int()
-    .positive()
+    .min(1)
     .optional()
     .describe(
-      "How many times the user wants to complete this habit per target period. Example: for 'gym 4x/week', targetCount is 4.",
+      "How many commitments should be generated per target period. Example: 3 for 'gym 3x/week'.",
     ),
   targetPeriod: z
-    .enum(habitTargetPeriod.enumValues)
+    .enum(routineTargetPeriod.enumValues)
     .optional()
-    .describe(
-      "The time window for the habit target. Example: for 'gym 4x/week', targetPeriod is 'week'; for 'meditate daily', targetPeriod is 'day'.",
-    ),
-  scheduledDays: z
-    .array(z.enum(weekDays.enumValues))
+    .describe("The period for the recurring quota: day, week, or month."),
+  goalId: z
+    .string()
     .optional()
-    .describe(
-      "Specific weekdays the user intends to complete this weekly habit. Example: for 'gym every Wednesday, Thursday, and Saturday', use ['wednesday', 'thursday', 'saturday']. Leave empty for flexible habits like 'gym 3x/week'.",
-    ),
+    .describe("Optional goal ID from active goals context, if clearly linked."),
 });
 
-type ManageHabitInput = z.infer<typeof manageHabitSchema>;
+type ManageRoutineInput = z.infer<typeof manageRoutineSchema>;
 
-export async function manageHabit(
-  input: ManageHabitInput,
+export async function manageRoutine(
+  input: ManageRoutineInput,
   context: ChatContext,
 ) {
   switch (input.action) {
     case "create": {
-      if (input.name === undefined) {
+      if (input.title === undefined) {
         return {
           success: false,
-          code: "invalid_habit",
-          message: "Habit name is required for new habits",
+          code: "invalid_routine",
+          message: "Title is required when creating a routine.",
         };
       }
 
-      const newHabit = await createHabit({
+      const routine = await createRoutine({
         userId: context.user.id,
-        name: input.name,
+        goalId: input.goalId,
+        title: input.title,
         description: input.description,
         targetCount: input.targetCount,
         targetPeriod: input.targetPeriod,
-        scheduledDays: input.scheduledDays,
       });
 
-      return { success: true, newHabit };
+      return { success: true, routine };
     }
 
     case "update": {
-      if (input.habitId === undefined) {
+      if (input.routineId === undefined) {
         return {
           success: false,
-          code: "invalid_habit",
-          message: "habitId is required for updates",
+          code: "invalid_routine",
+          message: "routineId is required for updates",
         };
       }
 
-      const updatedHabit = await updateHabit({
+      const updated = await updateRoutine({
         userId: context.user.id,
-        habitId: input.habitId,
-        name: input.name,
+        routineId: input.routineId,
+        goalId: input.goalId,
+        title: input.title,
         description: input.description,
         targetCount: input.targetCount,
         targetPeriod: input.targetPeriod,
-        scheduledDays: input.scheduledDays,
       });
 
-      return { success: true, updatedHabit };
+      return { success: true, updated };
     }
 
+    case "archive":
     case "pause": {
-      if (input.habitId === undefined) {
+      if (!input.routineId) {
         return {
           success: false,
-          code: "invalid_habit",
-          message: "habitId is required for pausing",
+          code: "invalid_routine",
+          message: "routineId is required for this action.",
         };
       }
 
-      const pausedHabit = await updateHabit({
+      const routine = await updateRoutine({
         userId: context.user.id,
-        habitId: input.habitId,
-        status: "paused",
+        routineId: input.routineId,
+        isActive: false,
       });
 
-      return { success: true, pausedHabit };
-    }
-
-    case "archive": {
-      if (input.habitId === undefined) {
-        return {
-          success: false,
-          code: "invalid_habit",
-          message: "habitId is required for archiving",
-        };
-      }
-
-      const archivedHabit = await updateHabit({
-        userId: context.user.id,
-        habitId: input.habitId,
-        status: "archived",
-      });
-
-      return { success: true, archivedHabit };
+      return { success: true, routine };
     }
   }
 }
