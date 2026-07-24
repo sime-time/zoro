@@ -10,10 +10,12 @@ export type MemoryImportance = (typeof memoryImportance.enumValues)[number];
 export async function getActiveMemories({
   userId,
   type,
+  importance,
   limit = 20,
 }: {
   userId: string;
   type?: MemoryType;
+  importance?: MemoryImportance;
   limit?: number;
 }): Promise<Memory[]> {
   const filters: SQL[] = [
@@ -23,6 +25,10 @@ export async function getActiveMemories({
 
   if (type !== undefined) {
     filters.push(eq(memories.type, type));
+  }
+
+  if (importance !== undefined) {
+    filters.push(eq(memories.importance, importance));
   }
 
   return await db

@@ -1,5 +1,5 @@
 import { chat } from "../agent/chat";
-import { extractAndSaveUserFacts } from "../agent/workflows/extract-facts";
+import { extractAndSaveMemories } from "../agent/workflows/extract-memories";
 import { getUnresolvedCommitments } from "../db/queries/commitments";
 import { getActiveGoals } from "../db/queries/goals";
 import { getActiveMemories } from "../db/queries/memories";
@@ -64,12 +64,14 @@ export async function handleInboundMessage({
 
   try {
     const phoneNumber = sender;
-
     const user = await findOrCreateUser(phoneNumber);
-    const memories = await getActiveMemories({ userId: user.id });
-    const goals = await getActiveGoals(user.id);
-    const routines = await getActiveRoutines(user.id);
-    const commitments = await getUnresolvedCommitments(user.id);
+
+    const [memories, goals, routines, commitments] = await Promise.all([
+      getActiveMemories({ userId: user.id }),
+      getActiveGoals(user.id),
+      getActiveRoutines(user.id),
+      getUnresolvedCommitments(user.id),
+    ]);
 
     const { conversation, thread } = await getConversation({
       phoneNumber,
@@ -91,10 +93,12 @@ export async function handleInboundMessage({
       audio,
       conversation,
       chatContext: {
-        user: user,
-        facts,
+        user,
+        memories,
         goals,
-        habits,
+        routines,
+        commitments,
+        scheduledMessages,
         isGroupChat: isGroup,
         service,
       },
@@ -128,13 +132,12 @@ export async function handleInboundMessage({
         isGroup,
       });
 
-      void extractAndSaveUserFacts({
+      void extractAndSaveMemories({
         userId: user.id,
         userMessage: userText,
-        assistantMessage: text,
-        existingFacts: facts,
+        existingMemories: memories,
       }).catch((err) => {
-        console.error("[facts] Failed fact extraction:", err);
+        console.error("[memory] Failed memory extraction:", err);
       });
 
       // Send multiple text messages split by "---"
