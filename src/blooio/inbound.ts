@@ -39,7 +39,7 @@ function cleanResponse(text: string): string {
 interface InboundMessageArgs {
   blooioChatId: string;
   blooioMessageId: string;
-  blooioParticipants: ChatParticipant[];
+  //blooioParticipants: ChatParticipant[];
   sender: string;
   textMessage: string;
   images: ExtractedMedia[];
@@ -51,7 +51,7 @@ interface InboundMessageArgs {
 export async function handleInboundMessage({
   blooioChatId,
   blooioMessageId,
-  blooioParticipants = [],
+  //blooioParticipants = [],
   sender,
   textMessage,
   images = [],

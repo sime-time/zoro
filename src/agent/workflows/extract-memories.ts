@@ -56,7 +56,7 @@ const extractedMemoriesSchema = z.object({
           .string()
           .describe("Short stable subject name, like communication_style."),
         content: z.string().describe("Concise durable content to remember."),
-        importance: z.enum(memoryImportance.enumValues).default("normal"),
+        importance: z.enum(memoryImportance.enumValues),
       }),
     )
     .max(3),
