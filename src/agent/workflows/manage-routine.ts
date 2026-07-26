@@ -61,6 +61,7 @@ export async function manageRoutine(
 
       const routine = await createRoutine({
         userId: context.user.id,
+        threadId: context.thread.id,
         goalId: input.goalId,
         title: input.title,
         description: input.description,

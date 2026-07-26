@@ -7,6 +7,19 @@ export type Thread = typeof threads.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
 
+export async function getThreadById(threadId: string): Promise<Thread> {
+  const [thread] = await db
+    .select()
+    .from(threads)
+    .where(eq(threads.id, threadId));
+
+  if (!thread) {
+    throw new Error("Thread not found");
+  }
+
+  return thread as Thread;
+}
+
 export async function findOrCreateThread(
   blooioChatId: string,
   isGroup = false,

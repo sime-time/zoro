@@ -125,6 +125,27 @@ export async function updateCommitment({
   return commitment;
 }
 
+export async function getCommitmentById({
+  userId,
+  commitmentId,
+}: {
+  userId: string;
+  commitmentId: string;
+}): Promise<Commitment> {
+  const [commitment] = await db
+    .select()
+    .from(commitments)
+    .where(
+      and(eq(commitments.id, commitmentId), eq(commitments.user_id, userId)),
+    );
+
+  if (!commitment) {
+    throw new Error("Commitment not found");
+  }
+
+  return commitment;
+}
+
 export async function getUnresolvedCommitments(
   userId: string,
 ): Promise<Commitment[]> {

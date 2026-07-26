@@ -2,10 +2,12 @@ import {
   createScheduledMessage,
   type ScheduledMessage,
 } from "../../db/queries/scheduled";
+import { inngest } from "../../inngest/client";
 
-const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
+const MIN_CHECK_IN_DELAY_MS = 5 * 60 * 1000;
+const MAX_CHECK_IN_DELAY_MS = 60 * 60 * 1000;
 
+// Schedule when the agent reminds the user of their commitments
 export async function scheduleCommitmentMessages({
   userId,
   threadId,
@@ -21,36 +23,30 @@ export async function scheduleCommitmentMessages({
 }): Promise<ScheduledMessage[]> {
   if (!dueAt) return [];
 
-  const schedule = [
-    {
-      type: "reminder" as const,
-      scheduledFor: new Date(dueAt.getTime() - HOUR_MS),
+  // from 5 minutes up to, but not including, 60 minutes
+  const delayMs =
+    MIN_CHECK_IN_DELAY_MS +
+    Math.floor(Math.random() * (MAX_CHECK_IN_DELAY_MS - MIN_CHECK_IN_DELAY_MS));
+
+  const checkInTime = new Date(dueAt.getTime() + delayMs);
+
+  if (checkInTime <= now) return [];
+
+  const scheduledMessage = await createScheduledMessage({
+    userId,
+    threadId,
+    commitmentId,
+    type: "check_in",
+    scheduledFor: checkInTime,
+  });
+
+  await inngest.send({
+    name: "scheduled-message/send",
+    ts: scheduledMessage.scheduled_for.getTime(),
+    data: {
+      scheduledMessageId: scheduledMessage.id,
     },
-    {
-      type: "check_in" as const,
-      scheduledFor: new Date(dueAt.getTime() + HOUR_MS),
-    },
-    {
-      type: "follow_up" as const,
-      scheduledFor: new Date(dueAt.getTime() + DAY_MS),
-    },
-  ];
+  });
 
-  const scheduledMessages: ScheduledMessage[] = [];
-
-  for (const item of schedule) {
-    if (item.scheduledFor <= now) continue;
-
-    const scheduledMessage = await createScheduledMessage({
-      userId,
-      threadId,
-      commitmentId,
-      type: item.type,
-      scheduledFor: item.scheduledFor,
-    });
-
-    scheduledMessages.push(scheduledMessage);
-  }
-
-  return scheduledMessages;
+  return [scheduledMessage];
 }

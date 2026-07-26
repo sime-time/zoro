@@ -29,6 +29,6 @@
 
     // Day.js
     "esModuleInterop": true,
-    "allowSynthenticDefaultImports": true
+    "allowSyntheticDefaultImports": true
   }
 }

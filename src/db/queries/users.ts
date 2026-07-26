@@ -48,6 +48,20 @@ export async function getUserId(phoneNumber: string): Promise<string> {
   return user.id;
 }
 
+export async function getUserById(userId: string): Promise<User> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
 export async function updateTimezone(userId: string, timezone: string) {
   const [user] = await db
     .update(users)

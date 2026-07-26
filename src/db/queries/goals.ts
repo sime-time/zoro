@@ -6,6 +6,14 @@ import { goals } from "../schema";
 export type Goal = typeof goals.$inferSelect;
 export type GoalStatus = (typeof goalStatus.enumValues)[number];
 
+export async function getGoalById(goalId: string): Promise<Goal> {
+  const [goal] = await db.select().from(goals).where(eq(goals.id, goalId));
+
+  if (!goal) throw new Error("Goal not found");
+
+  return goal;
+}
+
 export async function getActiveGoals(userId: string): Promise<Goal[]> {
   return await db
     .select()

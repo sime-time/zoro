@@ -146,6 +146,9 @@ export const routines = pgTable(
     user_id: uuid()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    thread_id: uuid()
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
     goal_id: uuid().references(() => goals.id, {
       onDelete: "set null",
     }),
@@ -158,6 +161,7 @@ export const routines = pgTable(
   },
   (table) => [
     index("routines_user_idx").on(table.user_id),
+    index("routines_thread_idx").on(table.thread_id),
     index("routines_goal_idx").on(table.goal_id),
     index("routines_active_idx").on(table.user_id, table.is_active),
   ],

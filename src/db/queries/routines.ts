@@ -17,6 +17,7 @@ export async function getActiveRoutines(userId: string): Promise<Routine[]> {
 export async function createRoutine({
   title,
   userId,
+  threadId,
   goalId,
   description,
   targetCount = 1,
@@ -24,6 +25,7 @@ export async function createRoutine({
 }: {
   title: string;
   userId: string;
+  threadId: string;
   goalId?: string;
   description?: string;
   targetCount?: number;
@@ -40,6 +42,7 @@ export async function createRoutine({
     .values({
       title: title.trim(),
       user_id: userId,
+      thread_id: threadId,
       goal_id: goalId ?? null,
       description: description?.trim() || null,
       target_count: targetCount,
@@ -105,4 +108,13 @@ export async function updateRoutine({
   if (!routine) throw new Error("Routine not found or failed to update");
 
   return routine;
+}
+
+export async function getAllActiveRoutines(userId: string) {
+  const activeRoutines = await db
+    .select()
+    .from(routines)
+    .where(and(eq(routines.user_id, userId), eq(routines.is_active, true)));
+
+  return activeRoutines;
 }

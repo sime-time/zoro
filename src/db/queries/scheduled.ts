@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, type SQL, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, type SQL, sql } from "drizzle-orm";
 import { db } from "../client";
 import type { scheduledMessageStatus, scheduledMessageType } from "../enums";
 import { scheduledMessages } from "../schema";
@@ -96,6 +96,33 @@ export async function cancelScheduledMessagesForCommitment({
       ),
     )
     .returning();
+}
+
+export async function claimScheduledMessageById({
+  scheduledMessageId,
+  now = new Date(),
+}: {
+  scheduledMessageId: string;
+  now?: Date;
+}): Promise<ScheduledMessage | null> {
+  const [scheduledMessage] = await db
+    .update(scheduledMessages)
+    .set({
+      status: "processing",
+      updated_at: new Date(),
+    })
+    .where(
+      and(
+        eq(scheduledMessages.id, scheduledMessageId),
+        eq(scheduledMessages.status, "scheduled"),
+        lte(scheduledMessages.scheduled_for, now),
+      ),
+    )
+    .returning();
+
+  if (!scheduledMessage) return null;
+
+  return scheduledMessage;
 }
 
 export async function claimDueScheduledMessage({
