@@ -15,6 +15,7 @@ import type { Thread } from "../db/queries/threads";
 import { type Message, saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
+import { observeTools } from "./observe";
 import { buildSystemPrompt } from "./system-prompt";
 import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
@@ -129,21 +130,7 @@ export async function chat({
     });
 
     // Monitor tool calls to initiate side effects
-    let reaction: Reaction | null = null;
-
-    for (const toolCall of response.toolCalls) {
-      if (toolCall.dynamic) continue;
-
-      switch (toolCall.toolName) {
-        case "sendReaction":
-          console.log(
-            "[tool] agent wants to react with:",
-            toolCall.input.reaction,
-          );
-          reaction = toolCall.input.reaction;
-          break;
-      }
-    }
+    const { reaction } = observeTools(response);
 
     console.log("[chat] AI response:", response.text);
 

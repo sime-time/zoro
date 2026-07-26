@@ -2,7 +2,7 @@ import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
-import { isValidTimeZone, normalizeTimeZone } from "../time";
+import { normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
 import {
@@ -74,7 +74,8 @@ export function createTools(context: ChatContext): ToolSet | undefined {
   });
 
   const setUserTimezone = tool({
-    description: "Update the user's timezone in IANA format.",
+    description:
+      "Update the user's timezone. Accepts IANA names or common timezone/city phrases like EST, Eastern, NYC, Chicago, LA.",
     inputSchema: z.object({
       timezone: z.string().describe("The user's timezone in IANA format."),
     }),
