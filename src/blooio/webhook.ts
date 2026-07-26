@@ -69,7 +69,6 @@ export async function blooioWebhookHandler(c: Context) {
   void handleInboundMessage({
     blooioChatId,
     blooioMessageId: event.message_id,
-    blooioParticipants: event.participants ?? [],
     sender,
     textMessage: text,
     images,

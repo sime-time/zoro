@@ -14,7 +14,7 @@ import {
   startTyping,
   stopTyping,
 } from "./api";
-import type { ChatParticipant, ExtractedMedia, MessageService } from "./types";
+import type { ExtractedMedia, MessageService } from "./types";
 
 // Clean up LLM response formatting quirks before sending
 function cleanResponse(text: string): string {
