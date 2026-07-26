@@ -2,7 +2,7 @@ import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
-import { isValidTimeZone } from "../time";
+import { isValidTimeZone, normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
 import {
@@ -79,14 +79,17 @@ export function createTools(context: ChatContext): ToolSet | undefined {
       timezone: z.string().describe("The user's timezone in IANA format."),
     }),
     execute: async ({ timezone }) => {
-      if (isValidTimeZone(timezone)) {
-        const user = await updateTimezone(context.user.id, timezone);
+      const normalizedTZ = normalizeTimeZone(timezone);
+
+      if (normalizedTZ) {
+        const user = await updateTimezone(context.user.id, normalizedTZ);
         return { success: true, userTimezone: user.timezone };
       } else {
         return {
           success: false,
           code: "invalid_timezone",
-          message: "Timezone is not in IANA format",
+          message:
+            'Ask for their city or timezone, like "NYC", "Chicago", "LA", "Eastern", or "America/New_York".',
         };
       }
     },
