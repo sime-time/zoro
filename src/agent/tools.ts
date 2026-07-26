@@ -4,6 +4,15 @@ import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
 import { normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
+import {
+  createCommitmentAction,
+  createCommitmentSchema,
+} from "./workflows/create-commitment";
+import { createGoalAction, createGoalSchema } from "./workflows/create-goal";
+import {
+  createRoutineAction,
+  createRoutineSchema,
+} from "./workflows/create-routine";
 import { logMeal, logMealSchema } from "./workflows/log-meal";
 import {
   manageCommitment,
@@ -27,7 +36,19 @@ function requireTimezone(context: ChatContext) {
   return null;
 }
 
+function toNonEmptyTuple(values: string[]): [string, ...string[]] | null {
+  const first = values[0];
+  if (!first) return null;
+
+  return [first, ...values.slice(1)];
+}
+
 export function createTools(context: ChatContext): ToolSet | undefined {
+  const goalIds = toNonEmptyTuple(context.goals?.map((goal) => goal.id) ?? []);
+  const routineIds = toNonEmptyTuple(
+    context.routines?.map((routine) => routine.id) ?? [],
+  );
+
   const sendReaction = tool({
     description:
       "Send an iMessage reaction (tapback) to the user's message. Use sparingly - text responses are preferred.",
@@ -62,6 +83,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     execute: async ({ name }) => {
       if (name.trim() !== "") {
         const user = await updateUserName(context.user.id, name.trim());
+        context.user.name = user.name;
         return { success: true, userName: user.name };
       } else {
         return {
@@ -84,6 +106,7 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
       if (normalizedTZ) {
         const user = await updateTimezone(context.user.id, normalizedTZ);
+        context.user.timezone = user.timezone;
         return { success: true, userTimezone: user.timezone };
       } else {
         return {
@@ -132,15 +155,45 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
-  const manageGoalTool = tool({
+  const createGoalTool = tool({
     description:
-      "Create or update a user's goal. Use this when the user explicitly wants to start tracking a goal, change goal details, mark a goal complete, or archive a goal. Requires the user's timezone before use. For updates, completions, or archives, use the goal ID from the active goals listed in context. Do not guess if the goal is ambiguous; ask a clarifying question instead.",
-    inputSchema: manageGoalSchema,
+      "Create a new goal when the user explicitly wants to save or track a direction/outcome. Do not use this for routines or one-off commitments.",
+    inputSchema: createGoalSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);
       if (timezoneError) return timezoneError;
 
-      return await manageGoal(input, context);
+      return await createGoalAction(input, context);
+    },
+  });
+
+  const manageGoalTool = goalIds
+    ? tool({
+        description:
+          "Update, complete, or archive an existing goal. Use only goal IDs from active goals context. Do not create new goals with this tool.",
+        inputSchema: manageGoalSchema.extend({
+          goalId: z
+            .enum(goalIds)
+            .describe("Goal ID from active goals context."),
+        }),
+        execute: async (input) => {
+          const timezoneError = requireTimezone(context);
+          if (timezoneError) return timezoneError;
+
+          return await manageGoal(input, context);
+        },
+      })
+    : undefined;
+
+  const createCommitmentTool = tool({
+    description:
+      "Create a new concrete one-off commitment with a resolved due datetime. Use this for new promises/actions. Do not use manageCommitment for new commitments.",
+    inputSchema: createCommitmentSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await createCommitmentAction(input, context);
     },
   });
 
@@ -156,17 +209,35 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
-  const manageRoutineTool = tool({
+  const createRoutineTool = tool({
     description:
-      "Create, update, pause, or archive a recurring routine that generates future commitments. Use this for recurring quotas or templates like 'gym 3x/week', 'write every day', or 'meal prep twice a week'. Do not use this for a one-off promise with a concrete due datetime; use manageCommitment instead. Requires the user's timezone because routines generate commitments in local day/week/month periods.",
-    inputSchema: manageRoutineSchema,
+      "Create a new recurring routine that generates future commitments. Use this for recurring quotas or templates like 'gym 3x/week', 'write every day', or 'meal prep twice a week'. Do not use this for one-off commitments.",
+    inputSchema: createRoutineSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);
       if (timezoneError) return timezoneError;
 
-      return await manageRoutine(input, context);
+      return await createRoutineAction(input, context);
     },
   });
+
+  const existingRoutineTool = routineIds
+    ? tool({
+        description:
+          "Update, pause, or archive an existing recurring routine. Use only routine IDs from active routines context. Do not create new routines with this tool.",
+        inputSchema: manageRoutineSchema.extend({
+          routineId: z
+            .enum(routineIds)
+            .describe("Routine ID from active routines context."),
+        }),
+        execute: async (input) => {
+          const timezoneError = requireTimezone(context);
+          if (timezoneError) return timezoneError;
+
+          return await manageRoutine(input, context);
+        },
+      })
+    : undefined;
 
   const tools = {
     setUserName,
@@ -174,9 +245,12 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     searchWeb: searchWebTool,
     logMeal: logMealTool,
     viewMeals: viewMealsTool,
-    manageGoal: manageGoalTool,
+    createGoal: createGoalTool,
     manageCommitment: manageCommitmentTool,
-    manageRoutine: manageRoutineTool,
+    createRoutine: createRoutineTool,
+    createCommitment: createCommitmentTool,
+    ...(manageGoalTool ? { manageGoal: manageGoalTool } : {}),
+    ...(existingRoutineTool ? { manageRoutine: existingRoutineTool } : {}),
   };
 
   const conditionalTools =

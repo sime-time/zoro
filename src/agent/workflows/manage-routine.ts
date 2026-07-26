@@ -1,23 +1,20 @@
 import { z } from "zod";
 import { routineTargetPeriod } from "../../db/enums";
-import { createRoutine, updateRoutine } from "../../db/queries/routines";
+import { updateRoutine } from "../../db/queries/routines";
 import type { ChatContext } from "../chat";
-import { optionalUuid } from "../uuid";
 
 export const manageRoutineSchema = z.object({
   action: z
-    .enum(["create", "update", "pause", "archive"])
+    .enum(["update", "pause", "archive"])
     .describe("The routine management action to perform."),
-  routineId: optionalUuid(
-    "Do not include routine ID when creating a new routine. Use an existing routine ID for updates or archive actions.",
-  ),
+  routineId: z.string().describe("Routine ID from active routines context."),
   title: z
     .string()
     .trim()
     .min(1)
     .optional()
     .describe(
-      "Short recurring intention/template, like 'Gym' or 'Write'. Required when action is create.",
+      "Updated short recurring intention/template, like 'Gym' or 'Write'.",
     ),
   description: z
     .string()
@@ -35,9 +32,6 @@ export const manageRoutineSchema = z.object({
     .enum(routineTargetPeriod.enumValues)
     .optional()
     .describe("The period for the recurring quota: day, week, or month."),
-  goalId: optionalUuid(
-    "Optional goal ID from active goals context, if clearly linked.",
-  ),
 });
 
 type ManageRoutineInput = z.infer<typeof manageRoutineSchema>;
@@ -47,41 +41,10 @@ export async function manageRoutine(
   context: ChatContext,
 ) {
   switch (input.action) {
-    case "create": {
-      if (input.title === undefined) {
-        return {
-          success: false,
-          code: "invalid_routine",
-          message: "Title is required when creating a routine.",
-        };
-      }
-
-      const routine = await createRoutine({
-        userId: context.user.id,
-        threadId: context.thread.id,
-        goalId: input.goalId,
-        title: input.title,
-        description: input.description,
-        targetCount: input.targetCount,
-        targetPeriod: input.targetPeriod,
-      });
-
-      return { success: true, routine };
-    }
-
     case "update": {
-      if (input.routineId === undefined) {
-        return {
-          success: false,
-          code: "invalid_routine",
-          message: "routineId is required for updates",
-        };
-      }
-
       const updated = await updateRoutine({
         userId: context.user.id,
         routineId: input.routineId,
-        goalId: input.goalId,
         title: input.title,
         description: input.description,
         targetCount: input.targetCount,
@@ -93,14 +56,6 @@ export async function manageRoutine(
 
     case "archive":
     case "pause": {
-      if (!input.routineId) {
-        return {
-          success: false,
-          code: "invalid_routine",
-          message: "routineId is required for this action.",
-        };
-      }
-
       const routine = await updateRoutine({
         userId: context.user.id,
         routineId: input.routineId,

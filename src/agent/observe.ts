@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: vercel-ai-sdk types
 import type { GenerateTextResult, ToolSet } from "ai";
 import type { Reaction } from "../blooio/types";
 

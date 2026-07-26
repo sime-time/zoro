@@ -1,20 +1,17 @@
 import z from "zod";
-import { createGoal, updateGoal } from "../../db/queries/goals";
+import { updateGoal } from "../../db/queries/goals";
 import type { ChatContext } from "../chat";
-import { optionalUuid } from "../uuid";
 
 export const manageGoalSchema = z.object({
   action: z
-    .enum(["create", "update", "complete", "archive"])
+    .enum(["update", "complete", "archive"])
     .describe("The goal management action to perform."),
-  goalId: optionalUuid(
-    "Don't add goal ID if creating a new goal. New IDs are generated.",
-  ),
+  goalId: z.string().describe("Goal ID from active goals context."),
   title: z
     .string()
     .optional()
     .describe(
-      "Name for the goal, like 'run a half marathon' or 'finish my essay'. Required when creating a new goal.",
+      "Updated name for the goal, like 'run a half marathon' or 'finish my essay'.",
     ),
   description: z
     .string()
@@ -39,35 +36,7 @@ type ManageGoalInput = z.infer<typeof manageGoalSchema>;
 
 export async function manageGoal(input: ManageGoalInput, context: ChatContext) {
   switch (input.action) {
-    case "create": {
-      if (input.title === undefined) {
-        return {
-          success: false,
-          code: "invalid_goal",
-          message: "Goal title is required for new goals",
-        };
-      }
-
-      const newGoal = await createGoal({
-        userId: context.user.id,
-        title: input.title,
-        description: input.description,
-        motivation: input.motivation,
-        deadline: input.deadline,
-      });
-
-      return { success: true, newGoal };
-    }
-
     case "update": {
-      if (input.goalId === undefined) {
-        return {
-          success: false,
-          code: "invalid_goal",
-          message: "goalId is required for updates",
-        };
-      }
-
       const updatedGoal = await updateGoal({
         userId: context.user.id,
         goalId: input.goalId,
@@ -80,14 +49,6 @@ export async function manageGoal(input: ManageGoalInput, context: ChatContext) {
       return { success: true, updatedGoal };
     }
     case "complete": {
-      if (input.goalId === undefined) {
-        return {
-          success: false,
-          code: "invalid_goal",
-          message: "goalId is required for completion",
-        };
-      }
-
       const completedGoal = await updateGoal({
         userId: context.user.id,
         goalId: input.goalId,
@@ -98,14 +59,6 @@ export async function manageGoal(input: ManageGoalInput, context: ChatContext) {
     }
 
     case "archive": {
-      if (input.goalId === undefined) {
-        return {
-          success: false,
-          code: "invalid_goal",
-          message: "goalId is required for archiving",
-        };
-      }
-
       const archivedGoal = await updateGoal({
         userId: context.user.id,
         goalId: input.goalId,
