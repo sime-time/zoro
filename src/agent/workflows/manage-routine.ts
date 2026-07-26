@@ -2,17 +2,15 @@ import { z } from "zod";
 import { routineTargetPeriod } from "../../db/enums";
 import { createRoutine, updateRoutine } from "../../db/queries/routines";
 import type { ChatContext } from "../chat";
+import { optionalUuid } from "../uuid";
 
 export const manageRoutineSchema = z.object({
   action: z
     .enum(["create", "update", "pause", "archive"])
     .describe("The routine management action to perform."),
-  routineId: z
-    .string()
-    .optional()
-    .describe(
-      "Do not include routine ID when creating a new routine. Use an existing routine ID for updates or archive actions.",
-    ),
+  routineId: optionalUuid(
+    "Do not include routine ID when creating a new routine. Use an existing routine ID for updates or archive actions.",
+  ),
   title: z
     .string()
     .trim()
@@ -37,10 +35,9 @@ export const manageRoutineSchema = z.object({
     .enum(routineTargetPeriod.enumValues)
     .optional()
     .describe("The period for the recurring quota: day, week, or month."),
-  goalId: z
-    .string()
-    .optional()
-    .describe("Optional goal ID from active goals context, if clearly linked."),
+  goalId: optionalUuid(
+    "Optional goal ID from active goals context, if clearly linked.",
+  ),
 });
 
 type ManageRoutineInput = z.infer<typeof manageRoutineSchema>;

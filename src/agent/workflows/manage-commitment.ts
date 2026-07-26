@@ -9,18 +9,16 @@ import {
   type ScheduledMessage,
 } from "../../db/queries/scheduled";
 import type { ChatContext } from "../chat";
+import { optionalUuid } from "../uuid";
 import { scheduleCommitmentMessages } from "./schedule-commit-messages";
 
 export const manageCommitmentSchema = z.object({
   action: z
     .enum(["create", "update", "complete", "miss", "cancel", "reschedule"])
     .describe("The commitment management action to perform."),
-  commitmentId: z
-    .string()
-    .optional()
-    .describe(
-      "Commitment ID from unresolved commitments context. Required except when action is create.",
-    ),
+  commitmentId: optionalUuid(
+    "Commitment ID from unresolved commitments context. Required except when action is create.",
+  ),
   title: z
     .string()
     .trim()
@@ -47,10 +45,9 @@ export const manageCommitmentSchema = z.object({
     .describe(
       "Timezone-resolved ISO datetime with offset, e.g. 2026-07-24T18:00:00-07:00. Resolve relative times using the user's saved timezone before calling.",
     ),
-  goalId: z
-    .string()
-    .optional()
-    .describe("Optional goal ID from active goals context, if clearly linked."),
+  goalId: optionalUuid(
+    "Optional goal ID from active goals context, if clearly linked.",
+  ),
   note: z
     .string()
     .optional()

@@ -1,17 +1,15 @@
 import z from "zod";
 import { createGoal, updateGoal } from "../../db/queries/goals";
 import type { ChatContext } from "../chat";
+import { optionalUuid } from "../uuid";
 
 export const manageGoalSchema = z.object({
   action: z
     .enum(["create", "update", "complete", "archive"])
     .describe("The goal management action to perform."),
-  goalId: z
-    .string()
-    .optional()
-    .describe(
-      "Don't add goal ID if creating a new goal. New IDs are generated.",
-    ),
+  goalId: optionalUuid(
+    "Don't add goal ID if creating a new goal. New IDs are generated.",
+  ),
   title: z
     .string()
     .optional()
