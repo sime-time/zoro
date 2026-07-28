@@ -4,7 +4,6 @@ import { messages, participants, threads } from "../schema";
 import { getUserId } from "./users";
 
 export type Thread = typeof threads.$inferSelect;
-export type Message = typeof messages.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
 
 export async function getThreadById(threadId: string): Promise<Thread> {

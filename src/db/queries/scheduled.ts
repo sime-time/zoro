@@ -1,36 +1,31 @@
-import { and, asc, eq, inArray, lte, type SQL, sql } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { db } from "../client";
-import type { scheduledMessageStatus, scheduledMessageType } from "../enums";
+import type { scheduledMessageStatus } from "../enums";
 import { scheduledMessages } from "../schema";
 
 export type ScheduledMessage = typeof scheduledMessages.$inferSelect;
-export type ScheduledMessageType =
-  (typeof scheduledMessageType.enumValues)[number];
 export type ScheduledMessageStatus =
   (typeof scheduledMessageStatus.enumValues)[number];
 
 export async function createScheduledMessage({
   userId,
   threadId,
-  type,
+  reminderId,
   scheduledFor,
   content,
-  commitmentId,
 }: {
   userId: string;
   threadId: string;
-  type: ScheduledMessageType;
+  reminderId: string;
   scheduledFor: Date;
   content?: string | null;
-  commitmentId?: string | null;
 }): Promise<ScheduledMessage> {
   const [scheduledMessage] = await db
     .insert(scheduledMessages)
     .values({
       user_id: userId,
       thread_id: threadId,
-      commitment_id: commitmentId ?? null,
-      type,
+      reminder_id: reminderId,
       scheduled_for: scheduledFor,
       content: content?.trim() || null,
     })
@@ -41,61 +36,6 @@ export async function createScheduledMessage({
   }
 
   return scheduledMessage;
-}
-
-export async function getPendingScheduledMessages({
-  userId,
-  threadId,
-  commitmentId,
-  limit = 20,
-}: {
-  userId: string;
-  threadId?: string;
-  commitmentId?: string;
-  limit?: number;
-}): Promise<ScheduledMessage[]> {
-  const filters: SQL[] = [
-    eq(scheduledMessages.user_id, userId),
-    eq(scheduledMessages.status, "scheduled"),
-  ];
-
-  if (threadId !== undefined) {
-    filters.push(eq(scheduledMessages.thread_id, threadId));
-  }
-
-  if (commitmentId !== undefined) {
-    filters.push(eq(scheduledMessages.commitment_id, commitmentId));
-  }
-
-  return await db
-    .select()
-    .from(scheduledMessages)
-    .where(and(...filters))
-    .orderBy(
-      asc(scheduledMessages.scheduled_for),
-      asc(scheduledMessages.created_at),
-    )
-    .limit(limit);
-}
-
-export async function cancelScheduledMessagesForCommitment({
-  commitmentId,
-}: {
-  commitmentId: string;
-}): Promise<ScheduledMessage[]> {
-  return await db
-    .update(scheduledMessages)
-    .set({
-      status: "cancelled",
-      updated_at: new Date(),
-    })
-    .where(
-      and(
-        eq(scheduledMessages.commitment_id, commitmentId),
-        inArray(scheduledMessages.status, ["scheduled", "processing"]),
-      ),
-    )
-    .returning();
 }
 
 export async function claimScheduledMessageById({
@@ -125,29 +65,19 @@ export async function claimScheduledMessageById({
   return scheduledMessage;
 }
 
-export async function claimDueScheduledMessage({
-  now = new Date(),
-}: {
-  now?: Date;
-} = {}): Promise<ScheduledMessage | null> {
-  const result = await db.execute<ScheduledMessage>(sql`
-    update scheduled_messages
-    set
-      status = 'processing',
-      updated_at = now()
-    where id = (
-      select id
-      from scheduled_messages
-      where status = 'scheduled'
-        and scheduled_for <= ${now}
-      order by scheduled_for asc, created_at asc
-      for update skip locked
-      limit 1
+export async function cancelScheduledMessagesForReminder(reminderId: string) {
+  const cancelled = await db
+    .update(scheduledMessages)
+    .set({ status: "cancelled", updated_at: new Date() })
+    .where(
+      and(
+        eq(scheduledMessages.reminder_id, reminderId),
+        eq(scheduledMessages.status, "scheduled"),
+      ),
     )
-    returning *
-  `);
+    .returning();
 
-  return result.rows[0] ?? null;
+  return cancelled;
 }
 
 export async function markScheduledMessageSent({
@@ -168,7 +98,12 @@ export async function markScheduledMessageSent({
       last_error: null,
       updated_at: new Date(),
     })
-    .where(eq(scheduledMessages.id, scheduledMessageId))
+    .where(
+      and(
+        eq(scheduledMessages.id, scheduledMessageId),
+        eq(scheduledMessages.status, "processing"),
+      ),
+    )
     .returning();
 
   if (!scheduledMessage) {
@@ -194,7 +129,12 @@ export async function markScheduledMessageFailed({
       last_error: message,
       updated_at: new Date(),
     })
-    .where(eq(scheduledMessages.id, scheduledMessageId))
+    .where(
+      and(
+        eq(scheduledMessages.id, scheduledMessageId),
+        eq(scheduledMessages.status, "processing"),
+      ),
+    )
     .returning();
 
   if (!scheduledMessage) {

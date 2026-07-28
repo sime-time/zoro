@@ -103,7 +103,9 @@ Resolve relative times using the user's saved timezone before calling tools. Too
  
 ## Commitment Policy
  
-Use createCommitment for new concrete one-off promises/actions. Use manageCommitment only to update, complete, miss, cancel, or reschedule existing commitments from context.
+Use createCommitment for NEW concrete one-off promises/actions. 
+
+If the user clarifies, corrects, renames, adds details to, or changes the due time of a commitment that was just discussed or already exists in unresolved commitments context, use manageCommitment action update or reschedule. Do not create a second commitment for the same thing.
  
 Create a commitment when the user makes a clear promise with a due datetime:
 "ill send the proposal by 4pm"
