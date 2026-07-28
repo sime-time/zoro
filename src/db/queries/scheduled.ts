@@ -1,4 +1,4 @@
-import { and, asc, eq, lte } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { db } from "../client";
 import type { scheduledMessageStatus } from "../enums";
 import { scheduledMessages } from "../schema";

@@ -17,6 +17,67 @@ import { getNextReminderTime } from "../time";
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "zoro" });
 
+const scheduleNextMessage = inngest.createFunction(
+  {
+    id: "schedule-next-message",
+    triggers: [{ event: "scheduled-message/next" }],
+  },
+  async ({ event, step }) => {
+    const { reminderId, userId, threadId, timezone } = event.data;
+    const after = new Date(event.data.after);
+
+    if (Number.isNaN(after.getTime())) {
+      throw new Error("Invalid after timestamp");
+    }
+
+    const [user, thread, reminder] = await Promise.all([
+      getUserById(userId),
+      getThreadById(threadId),
+      getReminderById({
+        userId,
+        reminderId,
+      }),
+    ]);
+
+    if (reminder.status !== "active") {
+      return { skipped: true, reason: "reminder_not_active" };
+    }
+    if (reminder.frequency === "once") {
+      return { skipped: true, reason: "not_recurring" };
+    }
+
+    const reminderTimezone = user.timezone ?? timezone;
+    if (!reminderTimezone) {
+      throw new Error("Recurring reminder user has no timezone");
+    }
+
+    // compute next occurrence
+    const nextScheduledFor: Date = getNextReminderTime({
+      reminder,
+      timezone: reminderTimezone,
+      after,
+    });
+
+    // create scheduled_messages row
+    const nextScheduledMessage = await createScheduledMessage({
+      userId: user.id,
+      threadId: thread.id,
+      reminderId: reminder.id,
+      scheduledFor: nextScheduledFor,
+    });
+
+    await step.run("enqueue next scheduled message", () =>
+      inngest.send({
+        name: "scheduled-message/send",
+        ts: nextScheduledMessage.scheduled_for.getTime(),
+        data: { scheduledMessageId: nextScheduledMessage.id },
+      }),
+    );
+
+    return { scheduled: true };
+  },
+);
+
 const sendScheduledMessage = inngest.createFunction(
   {
     id: "send-scheduled-message",
@@ -29,11 +90,13 @@ const sendScheduledMessage = inngest.createFunction(
       scheduledMessageId,
     });
 
-    if (scheduledMessage === null) {
-      return { skipped: true, reason: "not_scheduled_or_due" };
-    }
+    let sent = false;
 
     try {
+      if (scheduledMessage === null) {
+        return { skipped: true, reason: "not_scheduled_or_due" };
+      }
+
       if (!scheduledMessage.reminder_id) {
         throw new Error("Scheduled message has no reminder_id");
       }
@@ -48,7 +111,7 @@ const sendScheduledMessage = inngest.createFunction(
         }),
       ]);
 
-      // Reminder could have been updated before
+      // Reminder could have been resolved before
       if (reminder.status !== "active") {
         await step.run("mark scheduled message cancelled", () =>
           cancelProcessingScheduledMessage(scheduledMessage.id),
@@ -92,41 +155,36 @@ const sendScheduledMessage = inngest.createFunction(
         }),
       );
 
+      sent = true;
+
       // if recurring, schedule the next reminder message
       if (reminder.frequency !== "once") {
         if (!user.timezone) {
           throw new Error("Recurring reminder user has no timezone");
         }
 
-        // compute next occurrence
-        const nextScheduledFor: Date = getNextReminderTime({
-          reminder,
-          timezone: user.timezone,
-          after: scheduledMessage.scheduled_for,
-        });
-
-        // create scheduled_messages row
-        const nextScheduledMessage = await createScheduledMessage({
-          userId: user.id,
-          threadId: thread.id,
-          reminderId: reminder.id,
-          scheduledFor: nextScheduledFor,
-        });
-
-        await step.run("enqueue next scheduled message", () =>
+        await step.run("schedule next reminder", () =>
           inngest.send({
-            name: "scheduled-message/send",
-            ts: nextScheduledMessage.scheduled_for.getTime(),
-            data: { scheduledMessageId: nextScheduledMessage.id },
+            name: "scheduled-message/next",
+            data: {
+              reminderId: reminder.id,
+              userId: user.id,
+              threadId: thread.id,
+              timezone: user.timezone,
+              after: scheduledMessage.scheduled_for.toISOString(),
+            },
           }),
         );
       } else {
         await completeReminder({ userId: user.id, reminderId: reminder.id });
       }
-
-      return { sent: true };
     } catch (err) {
-      await step.run("mark scheduled message failed", () =>
+      if (sent) {
+        console.error("[reminder] Post-send follow-up failed", err);
+        return { sent: true, followUpFailed: true };
+      }
+
+      await step.run("scheduled message failed to send", () =>
         markScheduledMessageFailed({
           scheduledMessageId,
           error: err,
@@ -135,7 +193,9 @@ const sendScheduledMessage = inngest.createFunction(
 
       throw err;
     }
+
+    return { sent };
   },
 );
 
-export const functions = [sendScheduledMessage];
+export const functions = [sendScheduledMessage, scheduleNextMessage];
