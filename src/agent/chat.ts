@@ -9,7 +9,6 @@ import type { MessageService, Reaction } from "../blooio/types";
 import type { Memory } from "../db/queries/memories";
 import type { Message } from "../db/queries/messages";
 import type { Reminder } from "../db/queries/reminders";
-import type { ScheduledMessage } from "../db/queries/scheduled";
 import type { Thread } from "../db/queries/threads";
 import { saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
@@ -24,7 +23,6 @@ export interface ChatContext {
   thread: Thread;
   memories?: Memory[];
   reminders?: Reminder[];
-  scheduledMessages?: ScheduledMessage[];
   isGroupChat: boolean;
   // participantNames: string[];
   service?: MessageService;

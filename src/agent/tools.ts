@@ -17,7 +17,7 @@ function requireTimezone(context: ChatContext) {
       success: false,
       code: "timezone_required",
       message:
-        "Ask the user what timezone they are in before managing goals, routines, commitments, or meal logs.",
+        "Ask the user what city or timezone they are in before setting reminders.",
     };
   }
   return null;
@@ -95,7 +95,8 @@ export function createTools(context: ChatContext): ToolSet | undefined {
   });
 
   const createReminderTool = tool({
-    description: "",
+    description:
+      'Create a one-off or simple recurring SMS reminder. Requires the user\'s saved timezone. Resolve relative dates/times into scheduledFor as a timezone-resolved ISO datetime with offset. Use frequency "once" for one-time reminders, "daily" for daily reminders, "weekly" with weekdays, and "monthly" with dayOfMonth. Ask a clarifying question if the reminder time is unclear. Only confirm the reminder after this tool returns success true.',
     inputSchema: createReminderSchema,
     execute: async (input) => {
       const timezoneError = requireTimezone(context);

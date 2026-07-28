@@ -63,9 +63,9 @@ export async function handleInboundMessage({
     const phoneNumber = sender;
     const user = await findOrCreateUser(phoneNumber);
 
-    const [memories, reminders] = await Promise.all([
-      getActiveMemories({ userId: user.id }),
+    const [reminders, memories] = await Promise.all([
       getActiveReminders(user.id),
+      getActiveMemories({ userId: user.id }),
     ]);
 
     const { conversation, thread } = await getConversation({
