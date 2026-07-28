@@ -1,10 +1,7 @@
 import { chat } from "../agent/chat";
 import { extractAndSaveMemories } from "../agent/workflows/extract-memories";
-import { getUnresolvedCommitments } from "../db/queries/commitments";
-import { getActiveGoals } from "../db/queries/goals";
 import { getActiveMemories } from "../db/queries/memories";
-import { getActiveRoutines } from "../db/queries/routines";
-import { getPendingScheduledMessages } from "../db/queries/scheduled";
+import { getActiveReminders } from "../db/queries/reminders";
 import { getConversation, saveMessage } from "../db/queries/threads";
 import { findOrCreateUser } from "../db/queries/users";
 import {
@@ -66,11 +63,9 @@ export async function handleInboundMessage({
     const phoneNumber = sender;
     const user = await findOrCreateUser(phoneNumber);
 
-    const [memories, goals, routines, commitments] = await Promise.all([
+    const [memories, reminders] = await Promise.all([
       getActiveMemories({ userId: user.id }),
-      getActiveGoals(user.id),
-      getActiveRoutines(user.id),
-      getUnresolvedCommitments(user.id),
+      getActiveReminders(user.id),
     ]);
 
     const { conversation, thread } = await getConversation({
@@ -78,11 +73,6 @@ export async function handleInboundMessage({
       blooioChatId,
       isGroup,
       limit: 20,
-    });
-
-    const scheduledMessages = await getPendingScheduledMessages({
-      userId: user.id,
-      threadId: thread.id,
     });
 
     // Get agent's response
@@ -96,10 +86,7 @@ export async function handleInboundMessage({
         user,
         thread,
         memories,
-        goals,
-        routines,
-        commitments,
-        scheduledMessages,
+        reminders,
         isGroupChat: isGroup,
         service,
       },

@@ -1,4 +1,4 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, asc, eq, lte } from "drizzle-orm";
 import { db } from "../client";
 import type { scheduledMessageStatus } from "../enums";
 import { scheduledMessages } from "../schema";
@@ -63,6 +63,23 @@ export async function claimScheduledMessageById({
   if (!scheduledMessage) return null;
 
   return scheduledMessage;
+}
+
+export async function cancelProcessingScheduledMessage(
+  scheduledMessageId: string,
+) {
+  const [cancelled] = await db
+    .update(scheduledMessages)
+    .set({ status: "cancelled", updated_at: new Date() })
+    .where(
+      and(
+        eq(scheduledMessages.id, scheduledMessageId),
+        eq(scheduledMessages.status, "processing"),
+      ),
+    )
+    .returning();
+
+  return cancelled;
 }
 
 export async function cancelScheduledMessagesForReminder(reminderId: string) {

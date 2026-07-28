@@ -125,11 +125,9 @@ export const reminders = pgTable(
     details: text(),
     status: reminderStatus().notNull().default("active"),
 
-    // initial reminder timestamp for the first scheduled message
-    remind_at: timestamp({ withTimezone: true }).notNull(),
-
-    local_time: text(), // HH:mm
+    // Required for recurring reminders
     frequency: reminderFrequency().notNull().default("once"),
+    local_time: text(), // HH:mm,
     interval: integer(), // every X days/weeks/months
     weekdays: weekdayName().array(),
     day_of_month: integer(),

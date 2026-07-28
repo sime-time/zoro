@@ -13,7 +13,6 @@ export async function createReminder({
   threadId,
   title,
   details,
-  remindAt,
   localTime,
   frequency = "once",
   interval = 1,
@@ -24,10 +23,9 @@ export async function createReminder({
   threadId: string;
   title: string;
   details?: string;
-  remindAt: Date;
   localTime?: string | null;
   frequency?: ReminderFrequency;
-  interval?: number | null;
+  interval?: number;
   weekdays?: WeekdayName[] | null;
   dayOfMonth?: number | null;
 }): Promise<Reminder> {
@@ -42,7 +40,6 @@ export async function createReminder({
       thread_id: threadId,
       title: title.trim(),
       details: details?.trim() || null,
-      remind_at: remindAt,
       local_time: localTime,
       frequency,
       interval,
@@ -77,8 +74,8 @@ export async function getActiveReminders(userId: string): Promise<Reminder[]> {
   const active = await db
     .select()
     .from(reminders)
-    .where(eq(reminders.user_id, userId))
-    .orderBy(asc(reminders.remind_at), asc(reminders.created_at));
+    .where(and(eq(reminders.user_id, userId), eq(reminders.status, "active")))
+    .orderBy(asc(reminders.created_at));
 
   return active;
 }
@@ -88,7 +85,6 @@ export async function updateReminder({
   reminderId,
   title,
   details,
-  remindAt,
   localTime,
   status,
   frequency,
@@ -100,7 +96,6 @@ export async function updateReminder({
   reminderId: string;
   title?: string;
   details?: string | null;
-  remindAt?: Date;
   localTime?: string | null;
   status?: ReminderStatus;
   frequency?: ReminderFrequency;
@@ -118,7 +113,6 @@ export async function updateReminder({
   }
 
   if (details !== undefined) updates.details = details?.trim() || null;
-  if (remindAt !== undefined) updates.remind_at = remindAt;
   if (localTime !== undefined) updates.local_time = localTime;
   if (status !== undefined) updates.status = status;
   if (frequency !== undefined) updates.frequency = frequency;

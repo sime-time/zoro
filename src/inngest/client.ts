@@ -1,16 +1,18 @@
 import { Inngest } from "inngest";
-import { renderCheckInMessage } from "../agent/workflows/render-check-in-message";
+import { generateReminderMessage } from "../agent/workflows/generate-reminder-message";
 import { sendMessage } from "../blooio/api";
-import { getCommitmentById } from "../db/queries/commitments";
-import { getGoalById } from "../db/queries/goals";
 import { createMessage, getRecentMessages } from "../db/queries/messages";
+import { completeReminder, getReminderById } from "../db/queries/reminders";
 import {
+  cancelProcessingScheduledMessage,
   claimScheduledMessageById,
+  createScheduledMessage,
   markScheduledMessageFailed,
   markScheduledMessageSent,
 } from "../db/queries/scheduled";
 import { getThreadById } from "../db/queries/threads";
 import { getUserById } from "../db/queries/users";
+import { getNextReminderTime } from "../time";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "zoro" });
@@ -32,18 +34,28 @@ const sendScheduledMessage = inngest.createFunction(
     }
 
     try {
-      if (!scheduledMessage.commitment_id) {
-        throw new Error("Scheduled message has no commitment_id");
+      if (!scheduledMessage.reminder_id) {
+        throw new Error("Scheduled message has no reminder_id");
       }
 
-      const [user, thread, commitment] = await Promise.all([
+      // Load context
+      const [user, thread, reminder] = await Promise.all([
         getUserById(scheduledMessage.user_id),
         getThreadById(scheduledMessage.thread_id),
-        getCommitmentById({
+        getReminderById({
           userId: scheduledMessage.user_id,
-          commitmentId: scheduledMessage.commitment_id,
+          reminderId: scheduledMessage.reminder_id,
         }),
       ]);
+
+      // Reminder could have been updated before
+      if (reminder.status !== "active") {
+        await step.run("mark scheduled message cancelled", () =>
+          cancelProcessingScheduledMessage(scheduledMessage.id),
+        );
+
+        return { skipped: true, reason: "reminder_resolved" };
+      }
 
       const conversation = await getRecentMessages({
         userId: user.id,
@@ -51,22 +63,12 @@ const sendScheduledMessage = inngest.createFunction(
         limit: 30,
       });
 
-      const goal = commitment.goal_id
-        ? await getGoalById(commitment.goal_id)
-        : null;
-
-      if (!["pending", "in_progress"].includes(commitment.status)) {
-        return { skipped: true, reason: "commitment_resolved" };
-      }
-
       const text = await step.run("generate message", () =>
-        renderCheckInMessage({
-          scheduledMessage,
-          commitment,
-          goal,
+        generateReminderMessage({
           user,
-          conversation,
           thread,
+          reminder,
+          conversation,
         }),
       );
 
@@ -89,6 +91,38 @@ const sendScheduledMessage = inngest.createFunction(
           messageId,
         }),
       );
+
+      // if recurring, schedule the next reminder message
+      if (reminder.frequency !== "once") {
+        if (!user.timezone) {
+          throw new Error("Recurring reminder user has no timezone");
+        }
+
+        // compute next occurrence
+        const nextScheduledFor: Date = getNextReminderTime({
+          reminder,
+          timezone: user.timezone,
+          after: scheduledMessage.scheduled_for,
+        });
+
+        // create scheduled_messages row
+        const nextScheduledMessage = await createScheduledMessage({
+          userId: user.id,
+          threadId: thread.id,
+          reminderId: reminder.id,
+          scheduledFor: nextScheduledFor,
+        });
+
+        await step.run("enqueue next scheduled message", () =>
+          inngest.send({
+            name: "scheduled-message/send",
+            ts: nextScheduledMessage.scheduled_for.getTime(),
+            data: { scheduledMessageId: nextScheduledMessage.id },
+          }),
+        );
+      } else {
+        await completeReminder({ userId: user.id, reminderId: reminder.id });
+      }
 
       return { sent: true };
     } catch (err) {

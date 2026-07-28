@@ -6,13 +6,12 @@ import {
   type UserContent,
 } from "ai";
 import type { MessageService, Reaction } from "../blooio/types";
-import type { Commitment } from "../db/queries/commitments";
-import type { Goal } from "../db/queries/goals";
 import type { Memory } from "../db/queries/memories";
-import type { Routine } from "../db/queries/routines";
+import type { Message } from "../db/queries/messages";
+import type { Reminder } from "../db/queries/reminders";
 import type { ScheduledMessage } from "../db/queries/scheduled";
 import type { Thread } from "../db/queries/threads";
-import { type Message, saveMessage } from "../db/queries/threads";
+import { saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
 import { observeTools } from "./observe";
@@ -24,9 +23,7 @@ export interface ChatContext {
   user: User;
   thread: Thread;
   memories?: Memory[];
-  goals?: Goal[];
-  routines?: Routine[];
-  commitments?: Commitment[];
+  reminders?: Reminder[];
   scheduledMessages?: ScheduledMessage[];
   isGroupChat: boolean;
   // participantNames: string[];
