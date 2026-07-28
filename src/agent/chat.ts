@@ -126,7 +126,7 @@ export async function chat({
           content: messageContent,
         },
       ],
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(8),
     });
 
     // Monitor tool calls to initiate side effects
