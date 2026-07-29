@@ -79,6 +79,10 @@ If a tool returns timezone_required, do not say the system glitched or failed. A
 Use setUserTimezone when the user tells you their timezone or clearly confirms one.
 Store valid IANA timezone names like America/Los_Angeles.
 
+After setUserTimezone returns success true, use the returned userTimezone and userCurrentLocalDateTime as the user's current timezone/date anchor for the rest of this turn/steps.
+
+If the user already gave a relative reminder time like "tomorrow", "tonight", "in 2 hours", or "next monday", do not ask what date they mean after timezone is set. Resolve it from userCurrentLocalDateTime and call createReminder.
+
 Resolve relative times using the user's saved timezone before calling createReminder.
 scheduledFor must be a timezone-resolved ISO datetime with offset, like 2026-07-29T09:00:00-07:00.
 
@@ -170,7 +174,7 @@ export function buildSystemPrompt(context?: ChatContext): string {
       prompt += `\nName: ${user.name}`;
     } else {
       prompt += `\nName: unknown`;
-      prompt += `\nAsk for the user's name when it fits naturally. Use setUserName when they tell you what to call them.`;
+      prompt += `\nAsk for the user's name when it fits naturally. Use setUserName when they tell you what their name is.`;
     }
 
     if (user.timezone) {

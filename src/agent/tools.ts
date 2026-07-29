@@ -2,7 +2,7 @@ import { type ToolSet, tool } from "ai";
 import { z } from "zod";
 import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
-import { normalizeTimeZone } from "../time";
+import { getCurrentDateTimeInTimezone, normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
 import {
   createReminderAction,
@@ -81,8 +81,16 @@ export function createTools(context: ChatContext): ToolSet | undefined {
 
       if (normalizedTZ) {
         const user = await updateTimezone(context.user.id, normalizedTZ);
+        const userCurrentLocalDateTime =
+          getCurrentDateTimeInTimezone(normalizedTZ);
+
         context.user.timezone = user.timezone;
-        return { success: true, userTimezone: user.timezone };
+
+        return {
+          success: true,
+          userTimezone: user.timezone,
+          userCurrentLocalDateTime,
+        };
       } else {
         return {
           success: false,
