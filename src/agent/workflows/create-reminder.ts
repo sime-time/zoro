@@ -8,7 +8,7 @@ import { inngest } from "../../inngest/client";
 import { getLocalTime, isValidTimeZone } from "../../time";
 import type { ChatContext } from "../chat";
 
-export const createReminderSchema = z.object({
+const reminderBaseSchema = z.object({
   title: z
     .string()
     .trim()
@@ -23,22 +23,32 @@ export const createReminderSchema = z.object({
     .describe(
       "First reminder time as a timezone-resolved ISO datetime with offset, e.g. 2026-07-29T09:00:00-07:00.",
     ),
-  frequency: z
-    .enum(["once", "daily", "weekly", "monthly"])
-    .default("once")
-    .describe("How often the reminder repeats."),
-  weekdays: z
-    .array(z.enum(weekdayName.enumValues))
-    .optional()
-    .describe("Required for weekly reminders."),
-  dayOfMonth: z
-    .number()
-    .int()
-    .min(1)
-    .max(31)
-    .optional()
-    .describe("Required for monthly reminders."),
 });
+
+export const createReminderSchema = z.discriminatedUnion("frequency", [
+  reminderBaseSchema.extend({
+    frequency: z.literal("once").describe("One-time reminder."),
+  }),
+  reminderBaseSchema.extend({
+    frequency: z.literal("daily").describe("Daily recurring reminder."),
+  }),
+  reminderBaseSchema.extend({
+    frequency: z.literal("weekly").describe("Weekly recurring reminder."),
+    weekdays: z
+      .array(z.enum(weekdayName.enumValues))
+      .min(1)
+      .describe("Weekdays for the weekly reminder."),
+  }),
+  reminderBaseSchema.extend({
+    frequency: z.literal("monthly").describe("Monthly recurring reminder."),
+    dayOfMonth: z
+      .number()
+      .int()
+      .min(1)
+      .max(31)
+      .describe("Day of the month for the monthly reminder."),
+  }),
+]);
 
 type CreateReminderInput = z.infer<typeof createReminderSchema>;
 
@@ -58,42 +68,6 @@ function parseScheduledFor(scheduledFor: string) {
   return { scheduledFor: parsed };
 }
 
-function validateRecurrence(input: CreateReminderInput) {
-  if (input.frequency === "weekly" && !input.weekdays?.length) {
-    return {
-      success: false,
-      code: "invalid_weekly_reminder",
-      message: "Weekly reminders require at least one weekday.",
-    };
-  }
-
-  if (input.frequency !== "weekly" && input.weekdays?.length) {
-    return {
-      success: false,
-      code: "invalid_reminder",
-      message: "weekdays can only be used for weekly reminders.",
-    };
-  }
-
-  if (input.frequency === "monthly" && input.dayOfMonth === undefined) {
-    return {
-      success: false,
-      code: "invalid_monthly_reminder",
-      message: "Monthly reminders require dayOfMonth.",
-    };
-  }
-
-  if (input.frequency !== "monthly" && input.dayOfMonth !== undefined) {
-    return {
-      success: false,
-      code: "invalid_reminder",
-      message: "dayOfMonth can only be used for monthly reminders.",
-    };
-  }
-
-  return null;
-}
-
 export async function createReminderAction(
   input: CreateReminderInput,
   context: ChatContext,
@@ -106,9 +80,6 @@ export async function createReminderAction(
         "Ask the user for their city or timezone before setting reminders.",
     };
   }
-
-  const recurrenceError = validateRecurrence(input);
-  if (recurrenceError) return recurrenceError;
 
   const parsed = parseScheduledFor(input.scheduledFor);
   if (parsed.error) return parsed.error;
@@ -128,6 +99,10 @@ export async function createReminderAction(
       ? null
       : getLocalTime(scheduledFor, context.user.timezone);
 
+  const weekdays = input.frequency === "weekly" ? input.weekdays : undefined;
+  const dayOfMonth =
+    input.frequency === "monthly" ? input.dayOfMonth : undefined;
+
   const { reminder, scheduledMessage } = await createScheduledReminder({
     userId: context.user.id,
     threadId: context.thread.id,
@@ -136,8 +111,8 @@ export async function createReminderAction(
     localTime,
     frequency: input.frequency,
     interval: 1,
-    weekdays: input.weekdays,
-    dayOfMonth: input.dayOfMonth,
+    weekdays,
+    dayOfMonth,
     scheduledFor,
   });
 
