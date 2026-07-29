@@ -4,11 +4,17 @@ import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
 import { getCurrentDateTimeInTimezone, normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
+import { cancelReminderAction } from "./workflows/cancel-reminder";
+import { completeReminderAction } from "./workflows/complete-reminder";
 import {
   createReminderAction,
   createReminderSchema,
 } from "./workflows/create-reminder";
 import { searchWeb } from "./workflows/search-web";
+import {
+  updateReminderAction,
+  updateReminderSchema,
+} from "./workflows/update-reminder";
 
 // Every time-related tool starts with this guard
 function requireTimezone(context: ChatContext) {
@@ -114,11 +120,52 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
+  const updateReminderTool = tool({
+    description:
+      'Update an existing active reminder using its internal reminder ID from Active Reminders. Requires the user\'s saved timezone. Resolve relative dates/times into scheduledFor as a timezone-resolved ISO datetime with offset. Use frequency "once", "daily", "weekly", or "monthly". Only confirm the reminder was updated after this tool returns success true.',
+    inputSchema: updateReminderSchema,
+    execute: async (input) => {
+      const timezoneError = requireTimezone(context);
+      if (timezoneError) return timezoneError;
+
+      return await updateReminderAction(input, context);
+    },
+  });
+
+  const cancelReminderTool = tool({
+    description:
+      "Cancel an existing active reminder using its internal reminder ID from Active Reminders. Only confirm the reminder was cancelled after this tool returns success true.",
+    inputSchema: z.object({
+      reminderId: z
+        .uuid()
+        .describe("Internal reminder ID from Active Reminders."),
+    }),
+    execute: async ({ reminderId }) => {
+      return await cancelReminderAction(reminderId, context);
+    },
+  });
+
+  const completeReminderTool = tool({
+    description:
+      "Mark an active reminder occurrence as done using its internal reminder ID from Active Reminders. For one-time reminders, this completes the reminder. For recurring reminders, this skips the current pending occurrence and schedules the next one while keeping the reminder active. Do not use for cancel/delete/stop requests; use cancelReminder instead. Only confirm completion after this tool returns success true.",
+    inputSchema: z.object({
+      reminderId: z
+        .uuid()
+        .describe("Internal reminder ID from Active Reminders."),
+    }),
+    execute: async ({ reminderId }) => {
+      return await completeReminderAction(reminderId, context);
+    },
+  });
+
   const tools = {
     setUserName,
     setUserTimezone,
     searchWeb: searchWebTool,
     createReminder: createReminderTool,
+    updateReminder: updateReminderTool,
+    cancelReminder: cancelReminderTool,
+    completeReminder: completeReminderTool,
   };
 
   const conditionalTools =

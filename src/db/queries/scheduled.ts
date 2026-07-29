@@ -65,6 +65,21 @@ export async function claimScheduledMessageById({
   return scheduledMessage;
 }
 
+export async function cancelScheduledMessage(scheduledMessageId: string) {
+  const [cancelled] = await db
+    .update(scheduledMessages)
+    .set({ status: "cancelled", updated_at: new Date() })
+    .where(
+      and(
+        eq(scheduledMessages.id, scheduledMessageId),
+        eq(scheduledMessages.status, "scheduled"),
+      ),
+    )
+    .returning();
+
+  return cancelled;
+}
+
 export async function cancelProcessingScheduledMessage(
   scheduledMessageId: string,
 ) {
@@ -82,13 +97,20 @@ export async function cancelProcessingScheduledMessage(
   return cancelled;
 }
 
-export async function cancelScheduledMessagesForReminder(reminderId: string) {
+export async function cancelScheduledMessagesForReminder({
+  reminderId,
+  userId,
+}: {
+  reminderId: string;
+  userId: string;
+}) {
   const cancelled = await db
     .update(scheduledMessages)
     .set({ status: "cancelled", updated_at: new Date() })
     .where(
       and(
         eq(scheduledMessages.reminder_id, reminderId),
+        eq(scheduledMessages.user_id, userId),
         eq(scheduledMessages.status, "scheduled"),
       ),
     )

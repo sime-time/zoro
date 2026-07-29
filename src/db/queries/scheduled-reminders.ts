@@ -115,3 +115,41 @@ export async function cancelScheduledReminder({
     return { reminder, scheduledMessage };
   });
 }
+
+export async function cancelReminderAndScheduledMessages({
+  userId,
+  reminderId,
+}: {
+  userId: string;
+  reminderId: string;
+}) {
+  return await db.transaction(async (tx) => {
+    const [reminder] = await tx
+      .update(reminders)
+      .set({ status: "cancelled", updated_at: new Date() })
+      .where(
+        and(
+          eq(reminders.id, reminderId),
+          eq(reminders.user_id, userId),
+          eq(reminders.status, "active"),
+        ),
+      )
+      .returning();
+
+    if (!reminder) throw new Error("Reminder not found or failed to cancel");
+
+    const scheduledMessagesResult = await tx
+      .update(scheduledMessages)
+      .set({ status: "cancelled", updated_at: new Date() })
+      .where(
+        and(
+          eq(scheduledMessages.reminder_id, reminderId),
+          eq(scheduledMessages.user_id, userId),
+          eq(scheduledMessages.status, "scheduled"),
+        ),
+      )
+      .returning();
+
+    return { reminder, scheduledMessages: scheduledMessagesResult };
+  });
+}
