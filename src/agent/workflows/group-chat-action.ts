@@ -2,9 +2,9 @@
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import type { MessageService, Reaction } from "../blooio/types";
-import type { ThreadMessage } from "../db/queries/threads";
-import env from "../env";
+import type { MessageService, Reaction } from "../../blooio/types";
+import type { ThreadMessage } from "../../db/queries/threads";
+import env from "../../env";
 
 const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
 

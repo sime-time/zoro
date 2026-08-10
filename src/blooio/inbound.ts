@@ -1,6 +1,6 @@
 import { chat } from "../agent/chat";
-import { getGroupChatAction } from "../agent/group-chat-action";
 import { extractAndSaveMemories } from "../agent/workflows/extract-memories";
+import { getGroupChatAction } from "../agent/workflows/group-chat-action";
 import { getActiveMemories } from "../db/queries/memories";
 import { getActiveReminders } from "../db/queries/reminders";
 import { getConversation, saveMessage } from "../db/queries/threads";
