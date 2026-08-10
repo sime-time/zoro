@@ -56,6 +56,7 @@ export async function blooioWebhookHandler(c: Context) {
     return c.json({ status: "ok" }, 200);
   }
 
+  // Determine chatId: for group chats use group_id, for 1:1 use external_id
   const blooioChatId =
     event.is_group && event.group_id ? event.group_id : event.external_id;
 
@@ -69,6 +70,7 @@ export async function blooioWebhookHandler(c: Context) {
   void handleInboundMessage({
     blooioChatId,
     blooioMessageId: event.message_id,
+    blooioParticipants: event.participants ?? [],
     sender,
     textMessage: text,
     images,

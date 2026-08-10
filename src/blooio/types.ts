@@ -41,16 +41,6 @@ export interface ExtractedMedia {
   mimeType: string;
 }
 
-export type MessageHandler = (
-  chatId: string,
-  from: string,
-  text: string,
-  messageId: string,
-  images: ExtractedMedia[],
-  audio: ExtractedMedia[],
-  service?: MessageService,
-) => Promise<void>;
-
 export const REACTIONS = [
   "love",
   "like",

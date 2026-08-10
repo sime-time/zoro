@@ -7,9 +7,8 @@ import {
 } from "ai";
 import type { MessageService, Reaction } from "../blooio/types";
 import type { Memory } from "../db/queries/memories";
-import type { Message } from "../db/queries/messages";
 import type { Reminder } from "../db/queries/reminders";
-import type { Thread } from "../db/queries/threads";
+import type { Thread, ThreadMessage } from "../db/queries/threads";
 import { saveMessage } from "../db/queries/threads";
 import type { User } from "../db/queries/users";
 import env from "../env";
@@ -24,7 +23,8 @@ export interface ChatContext {
   memories?: Memory[];
   reminders?: Reminder[];
   isGroupChat: boolean;
-  // participantNames: string[];
+  participantNames: string[];
+  senderHandle: string;
   service?: MessageService;
 }
 
@@ -53,7 +53,7 @@ export async function chat({
   userMessage: string;
   images: ImageInput[];
   audio: AudioInput[];
-  conversation: Message[];
+  conversation: ThreadMessage[];
   chatContext: ChatContext;
 }): Promise<ChatResponse> {
   // Build message content (text + images + audio)
@@ -86,7 +86,11 @@ export async function chat({
   }
 
   if (text) {
-    messageContent.push({ type: "text", text });
+    const senderText = chatContext.isGroupChat
+      ? `[${chatContext.senderHandle}]: ${text}`
+      : text;
+
+    messageContent.push({ type: "text", text: senderText });
 
     // Capture user message before generating response
     await saveMessage({
@@ -102,11 +106,20 @@ export async function chat({
   const systemPrompt = buildSystemPrompt(chatContext);
   const tools = createTools(chatContext);
 
-  // Format conversation history with timestamps
-  const history: ModelMessage[] = conversation.map((c) => ({
-    role: c.role,
-    content: c.content,
-  }));
+  // Format conversation history
+  const history: ModelMessage[] = conversation.map((c) => {
+    let content = c.content;
+
+    if (chatContext.isGroupChat && c.role === "user") {
+      const sender = c.sender_name || c.sender_phone || "Someone";
+      content = `[${sender}]: ${content}`;
+    }
+
+    return {
+      role: c.role,
+      content,
+    };
+  });
 
   try {
     // Generate AI response

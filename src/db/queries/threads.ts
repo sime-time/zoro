@@ -1,10 +1,15 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../client";
-import { messages, participants, threads } from "../schema";
+import { messages, participants, threads, users } from "../schema";
+import type { Message } from "./messages";
 import { getUserId } from "./users";
 
 export type Thread = typeof threads.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
+export type ThreadMessage = Message & {
+  sender_name: string | null;
+  sender_phone: string | null;
+};
 
 export async function getThreadById(threadId: string): Promise<Thread> {
   const [thread] = await db
@@ -83,7 +88,7 @@ export async function getConversation({
   blooioChatId: string;
   isGroup?: boolean;
   limit?: number;
-}) {
+}): Promise<{ conversation: ThreadMessage[]; thread: Thread }> {
   const userId = await getUserId(phoneNumber);
   const thread = await findOrCreateThread(blooioChatId, isGroup);
   await findOrCreateParticipant({ userId, threadId: thread.id });
@@ -92,8 +97,19 @@ export async function getConversation({
   // Must be reversed so conversation flows oldest to newest
   const conversation = (
     await db
-      .select()
+      .select({
+        id: messages.id,
+        user_id: messages.user_id,
+        thread_id: messages.thread_id,
+        role: messages.role,
+        content: messages.content,
+        created_at: messages.created_at,
+        updated_at: messages.updated_at,
+        sender_name: users.name,
+        sender_phone: users.phone,
+      })
       .from(messages)
+      .innerJoin(users, eq(messages.user_id, users.id))
       .where(eq(messages.thread_id, thread.id))
       .orderBy(desc(messages.created_at))
       .limit(limit)

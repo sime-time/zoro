@@ -1,17 +1,19 @@
 import { chat } from "../agent/chat";
+import { getGroupChatAction } from "../agent/group-chat-action";
 import { extractAndSaveMemories } from "../agent/workflows/extract-memories";
 import { getActiveMemories } from "../db/queries/memories";
 import { getActiveReminders } from "../db/queries/reminders";
 import { getConversation, saveMessage } from "../db/queries/threads";
 import { findOrCreateUser } from "../db/queries/users";
 import {
+  getChatInfo,
   markAsRead,
   sendMessage,
   sendReaction,
   startTyping,
   stopTyping,
 } from "./api";
-import type { ExtractedMedia, MessageService } from "./types";
+import type { ChatParticipant, ExtractedMedia, MessageService } from "./types";
 
 // Clean up LLM response formatting quirks before sending
 function cleanResponse(text: string): string {
@@ -36,7 +38,7 @@ function cleanResponse(text: string): string {
 interface InboundMessageArgs {
   blooioChatId: string;
   blooioMessageId: string;
-  //blooioParticipants: ChatParticipant[];
+  blooioParticipants?: ChatParticipant[];
   sender: string;
   textMessage: string;
   images: ExtractedMedia[];
@@ -48,7 +50,7 @@ interface InboundMessageArgs {
 export async function handleInboundMessage({
   blooioChatId,
   blooioMessageId,
-  //blooioParticipants = [],
+  blooioParticipants = [],
   sender,
   textMessage,
   images = [],
@@ -56,12 +58,33 @@ export async function handleInboundMessage({
   isGroup = false,
   service,
 }: InboundMessageArgs) {
-  // Acknowledge message
-  await Promise.all([markAsRead(blooioChatId), startTyping(blooioChatId)]);
-
   try {
+    // Acknowledge message
+    await Promise.all([markAsRead(blooioChatId), startTyping(blooioChatId)]);
+
     const phoneNumber = sender;
     const user = await findOrCreateUser(phoneNumber);
+
+    const chatInfo = await getChatInfo(blooioChatId).catch((err) => {
+      console.error(
+        "[inbound] Failed to fetch chat info:",
+        err instanceof Error ? err.message : err,
+      );
+
+      return {
+        id: blooioChatId,
+        participants: blooioParticipants,
+        displayName: null,
+        isGroup,
+        groupId: isGroup ? blooioChatId : null,
+      };
+    });
+
+    const isGroupChat = chatInfo.isGroup || isGroup;
+
+    const chatParticipants = chatInfo.participants.map(
+      (p) => p.name || p.identifier,
+    );
 
     const [reminders, memories] = await Promise.all([
       getActiveReminders(user.id),
@@ -71,9 +94,53 @@ export async function handleInboundMessage({
     const { conversation, thread } = await getConversation({
       phoneNumber,
       blooioChatId,
-      isGroup,
+      isGroup: isGroupChat,
       limit: 20,
     });
+
+    // Determine if Zoro should respond/react/ignore in group chat
+    if (isGroupChat && images.length === 0 && audio.length === 0) {
+      const { action, reaction: groupReaction } = await getGroupChatAction({
+        message: textMessage,
+        sender,
+        conversation,
+        service,
+      });
+
+      if (action === "ignore") {
+        return;
+      }
+
+      if (action === "react") {
+        if (groupReaction) {
+          await sendReaction({
+            blooioChatId,
+            blooioMessageId,
+            reaction: groupReaction,
+            action: "add",
+          });
+
+          await saveMessage({
+            phoneNumber,
+            blooioChatId,
+            role: "user",
+            content: textMessage,
+            isGroup: true,
+          });
+
+          await saveMessage({
+            phoneNumber,
+            blooioChatId,
+            role: "assistant",
+            content: `[reacted with ${groupReaction}]`,
+            isGroup: true,
+          });
+        }
+
+        // Reaction-only response; no full chat response needed.
+        return;
+      }
+    }
 
     // Get agent's response
     const { text, reaction, userText } = await chat({
@@ -87,7 +154,9 @@ export async function handleInboundMessage({
         thread,
         memories,
         reminders,
-        isGroupChat: isGroup,
+        isGroupChat,
+        senderHandle: sender,
+        participantNames: chatParticipants,
         service,
       },
     });
@@ -117,7 +186,7 @@ export async function handleInboundMessage({
         blooioChatId,
         role: "assistant",
         content: fullMessage,
-        isGroup,
+        isGroup: isGroupChat,
       });
 
       void extractAndSaveMemories({
