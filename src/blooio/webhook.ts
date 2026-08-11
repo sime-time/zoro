@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { handleInboundMessage } from "./inbound";
+import { inngest } from "../inngest/client";
 import {
   extractAudioAttachments,
   extractImageAttachments,
@@ -34,6 +34,13 @@ export async function blooioWebhookHandler(c: Context) {
     if (event.event !== "message.received") {
       return c.json({ status: "ok" }, 200);
     }
+    if (
+      typeof event.message_id !== "string" ||
+      typeof event.external_id !== "string" ||
+      typeof event.is_group !== "boolean"
+    ) {
+      return c.json({ status: "bad_request" }, 400);
+    }
   } catch (err) {
     console.warn("[webhook] Invalid JSON payload:", err);
     return c.json({ status: "bad_request" }, 400);
@@ -67,19 +74,19 @@ export async function blooioWebhookHandler(c: Context) {
   // Pass the cleaned message to handler
   const service = mapProtocolToService(event.protocol);
 
-  void handleInboundMessage({
-    blooioChatId,
-    blooioMessageId: event.message_id,
-    blooioParticipants: event.participants ?? [],
-    sender,
-    textMessage: text,
-    images,
-    audio,
-    isGroup: event.is_group,
-    service,
-  }).catch((err) => {
-    console.error("[webhook] Error handling inbound message:", err);
-    return c.json({ status: "error" }, 500);
+  await inngest.send({
+    name: "inbound-message/received",
+    data: {
+      blooioChatId,
+      blooioMessageId: event.message_id,
+      blooioParticipants: event.participants ?? [],
+      sender,
+      textMessage: text,
+      images,
+      audio,
+      isGroup: event.is_group,
+      service,
+    },
   });
 
   return c.json({ status: "ok" }, 200);
