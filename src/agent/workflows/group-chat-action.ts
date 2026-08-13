@@ -2,6 +2,7 @@
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+import type { Jsonify } from "inngest/types";
 import type { MessageService, Reaction } from "../../blooio/types";
 import type { ThreadMessage } from "../../db/queries/threads";
 import env from "../../env";
@@ -18,7 +19,7 @@ export async function getGroupChatAction({
 }: {
   message: string;
   sender: string;
-  conversation: ThreadMessage[];
+  conversation: Jsonify<ThreadMessage[]>;
   service?: MessageService;
 }): Promise<{ action: GroupChatAction; reaction?: Reaction }> {
   const recentMessages = conversation.slice(-4);

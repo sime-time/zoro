@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { serve } from "inngest/hono";
 import { blooioWebhookHandler } from "./blooio/webhook";
-import { functions, inngest } from "./inngest/client";
+import { inngest } from "./inngest/client";
+import { functions } from "./inngest/functions";
 
 const app = new Hono();
 

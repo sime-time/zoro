@@ -5,6 +5,7 @@ import {
   stepCountIs,
   type UserContent,
 } from "ai";
+import type { Jsonify } from "inngest/types";
 import type { MessageService, Reaction } from "../blooio/types";
 import type { Memory } from "../db/queries/memories";
 import type { Reminder } from "../db/queries/reminders";
@@ -18,10 +19,10 @@ import { createTools } from "./tools";
 import { type AudioInput, transcribeAudio } from "./workflows/transcribe-audio";
 
 export interface ChatContext {
-  user: User;
-  thread: Thread;
-  memories?: Memory[];
-  reminders?: Reminder[];
+  user: Jsonify<User>;
+  thread: Jsonify<Thread>;
+  memories?: Jsonify<Memory[]>;
+  reminders?: Jsonify<Reminder[]>;
   isGroupChat: boolean;
   participantNames: string[];
   senderHandle: string;
@@ -53,7 +54,7 @@ export async function chat({
   userMessage: string;
   images: ImageInput[];
   audio: AudioInput[];
-  conversation: ThreadMessage[];
+  conversation: Jsonify<ThreadMessage[]>;
   chatContext: ChatContext;
 }): Promise<ChatResponse> {
   // Build message content (text + images + audio)

@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, Output } from "ai";
+import type { Jsonify } from "inngest/types";
 import { z } from "zod";
 import { memoryImportance, memoryType } from "../../db/enums";
 import {
@@ -103,7 +104,7 @@ export async function extractAndSaveMemories({
   userId: string;
   sourceMessageId?: string | null;
   userMessage: string | null;
-  existingMemories?: Memory[];
+  existingMemories?: Jsonify<Memory[]>;
 }): Promise<Memory[]> {
   if (!userMessage || userMessage.trim() === "") return [];
   if (containsMetaOrControlText(userMessage)) return [];
