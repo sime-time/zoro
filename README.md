@@ -1,16 +1,16 @@
 ## Project Overview
 
-Zoro is a commitment-centered accountability agent that lives primarily inside iMessage/SMS.
+Zora is a text-native personal assistant that lives primarily inside iMessage/SMS.
 
-The product helps users turn stated intentions into concrete commitments, follow up at useful times, record what happened, and recover when plans slip. It should feel like a sharp friend in their pocket: direct, socially aware, encouraging when useful, and willing to call out mismatch between stated goals and actual behavior.
+The product helps users set reminders, manage lightweight personal context, search the web, and interact with connected external apps like Gmail, Google Calendar, and Notion through Composio. It should feel like a sharp friend in their pocket: concise, useful, socially aware, and proactive when timing matters.
 
 Positioning:
 
-> The smart friend who helps you actually follow through.
+> A personal assistant you can text.
 
 Core promise:
 
-> Text what you intend to do. Zoro keeps the loop alive until it is done, changed, blocked, or dropped.
+> Text Zora what you need. It can remind you, look things up, and help with connected apps from the same conversation.
 
 ## Tech Stack
 
@@ -21,13 +21,14 @@ Core promise:
 - **Drizzle ORM** — schema, migrations, and type-safe database access.
 - **Blooio** — iMessage/SMS API layer.
 - **Vercel AI SDK** — AI orchestration, model calls, and tool calling when compatible.
+- **Composio** — external app/tool integration for Gmail, Google Calendar, Notion, and future connected apps.
 - **Stripe** — checkout, subscriptions, billing, and customer portal.
 - **Inngest** — durable background jobs and reminder scheduling.
 
 ## High-Level Architecture
 
 ```txt
-User texts Zoro
+User texts Zora
   ↓
 Blooio webhook
   ↓
@@ -35,97 +36,86 @@ Bun/Hono API server on Railway
   ↓
 Drizzle repos read/write Railway Postgres
   ↓
-Profile, memories, goals, and unresolved commitments are loaded/updated
+Profile, memories, reminders, conversation history, and Composio session state are loaded/updated
   ↓
 AI generates a short text-native reply
   ↓
 Blooio sends reply back to user
 ```
 
-Proactive accountability messages follow the same text-native delivery path:
+Proactive reminder messages follow the same text-native delivery path:
 
 ```txt
-Commitment needs reminder/check-in/follow-up
+Reminder is due
   ↓
 scheduled_messages row is created/updated
   ↓
 Inngest claims due scheduled message durably
   ↓
-Zoro checks commitment is still unresolved/relevant
+Zora checks the reminder is still active/relevant
   ↓
 Blooio sends the reminder as an iMessage/SMS text
   ↓
-Commitment event history records what happened
+Reminder/message history records what happened
 ```
 
 ## Product Scope
 
-Build the most useful text-native accountability agent.
+Build the most useful text-native personal assistant.
 
 MVP focus:
 
 - Phone-number-based accounts.
 - Conversational onboarding.
-- Durable user profile, goals, memories, commitments, and scheduled messages.
-- Commitment-aware conversation that helps users clarify what they will do, when, and what counts as done.
-- Automatic capture of clear commitments from natural language, without requiring CRUD wording.
-- Reminder, check-in, and follow-up loops delivered through Blooio texts.
-- Missed/blocked commitment recovery: identify blocker, reduce scope, or reschedule only when user recommits.
+- Durable user profile, memories, reminders, messages, and Composio session records.
+- One-off and simple recurring reminders delivered through Blooio texts.
+- Web search for current, recent, location-specific, or verifiable external information.
+- External app access through Composio for Gmail, Google Calendar, and Notion.
+- Private app connection flows via Composio Connect Links.
+- iMessage reactions only when the conversation service supports them.
 - Subscription gating through Stripe.
 - Safety handling for dangerous or high-risk messages.
 
 Out of core MVP scope:
 
-- Habit tracking as a checkbox/streak product concept.
-- Meal and macro tracking.
 - Productivity dashboard UI.
 - Complex recurrence rules.
-
-Routines replace habits as recurring commitment templates. Meal tracking remains an optional module, but neither routines nor meals should define Zoro's core identity.
+- Habit/streak tracking as a primary product concept.
+- Meal and macro tracking.
+- Broad unrestricted external app access.
 
 ## Core Data Model
 
-Goals describe direction. Commitments describe what the user said they would do. Scheduled messages describe outbound texts Zoro plans to send.
+Reminders describe what Zora should remind the user about. Scheduled messages describe outbound texts Zora plans to send. Composio sessions preserve external app tool context for a user/thread.
 
 Core tables:
 
 - `users` — phone-number keyed accounts, profile, timezone, preferences.
 - `threads`, `participants`, `messages` — text conversation history and traceability.
-- `goals` — longer-term direction, motivation, milestones, and next action.
-- `memories` — typed, sourced, confidence-scored context that should change future behavior.
-- `routines` — recurring intentions that generate concrete commitments.
-- `commitments` — concrete promises or intended actions kept alive until resolved.
-- `commitment_events` — append-only history of creation, reminders, misses, completions, blockers, and reschedules.
-- `scheduled_messages` — durable queue for reminders, check-ins, and follow-ups.
+- `memories` — durable user context that should change future behavior.
+- `reminders` — one-off and simple recurring reminders.
+- `scheduled_messages` — durable queue for outbound reminder messages.
+- `composio_sessions` — persisted Composio session IDs scoped by user and thread.
 
-Routines do not record completion directly. They generate commitments, and those commitments receive events and scheduled messages.
+Reminder scheduling uses one-off `scheduled_messages` rows linked to reminders.
 
 ```txt
-routine
-  ↓ generates
-commitments
-  ↓ get
+reminder
+  ↓ schedules
 scheduled_messages
 ```
 
 Example:
 
 ```txt
-Routine:
-Gym 3x/week
-
-Generated commitments:
-- Gym session 1 this week
-- Gym session 2 this week
-- Gym session 3 this week
+Reminder:
+Call mom tomorrow at 9am
 
 Scheduled messages:
-- reminder before a session is due
-- check-in after due time
-- follow-up if unresolved
+- outbound reminder text at the scheduled time
 ```
 
-`scheduled_messages` should not be recurring rows. They are one-off outbound texts linked to concrete commitments. A periodic routine generator creates missing commitments for the current period, then normal scheduling policy creates one-off scheduled messages for each commitment.
+`scheduled_messages` should not be recurring rows. They are one-off outbound texts linked to reminders. Recurring reminders create the next scheduled message after each occurrence is sent or completed.
 
 `memories` replaces generic `user_facts`. A memory is not just a key/value fact; it has type, source, confidence, importance, and lifecycle fields so stale or contaminated context does not quietly pollute the system prompt.
 
@@ -139,56 +129,60 @@ Memory types:
 - `relationship` — durable relationship/social context relevant to support.
 - `strategy` — tactics that help this user follow through.
 
-Memory rows should include `source_message_id`, `confidence`, `importance`, `last_confirmed_at`, `expires_at`, and `is_active`.
+Memory rows should include source and lifecycle fields so stale or contaminated context does not quietly pollute the system prompt.
 
 Only save memory that should affect future behavior. Do not save system/developer/tool text, prompt fragments, one-off trivia, jokes, or roleplay unless the user explicitly wants it remembered as a durable preference.
 
 Prompt context should include a small set of relevant active memories, not every memory ever saved.
 
-Commitment lifecycle:
+Reminder lifecycle:
 
 ```txt
 conversation
   ↓
-possible intention detected
+reminder request detected
   ↓
-commitment clarified
-  ↓
-commitment scheduled
+reminder clarified
   ↓
 reminder/check-in sent
   ↓
 outcome collected
   ├── completed
-  ├── missed
-  ├── blocked
   ├── rescheduled
   └── cancelled
-  ↓
-follow-up or recovery plan
 ```
 
-Key distinction:
+## External App Integrations
 
-- `due_at` = when user intends to act or finish.
-- `next_check_in_at` = when Zoro should speak next.
+Composio is used for external app tools.
 
-Do not overload one timestamp for both.
+Current enabled toolkits:
+
+- Gmail
+- Google Calendar
+- Notion
+
+Zora uses the app's `users.id` as the Composio user ID. Composio sessions are persisted per `user_id + thread_id`, so a conversation can reuse tool/auth context across turns.
+
+Zora disables Composio in-chat connection management and owns connection flows through local tools:
+
+- `connectExternalApp`
+- `listConnectedExternalApps`
+
+Group chats must not expose app connection links or private external app data. Users should DM Zora for external app authentication and private app actions.
 
 ## Product Principles
 
-- Zoro is not a generic chatbot, task manager, therapist, or productivity dashboard.
+- Zora is a personal assistant, not a generic chatbot, therapist, or productivity dashboard.
 - Texting is the primary interface.
-- Prefer one concrete next action over broad advice.
+- Prefer one concrete useful action over broad advice.
 - Ask one question at a time.
-- Keep meaningful commitments alive until they are completed, cancelled, rescheduled, blocked, or missed.
-- Do not turn every casual thought into a commitment.
-- Clarify weak or vague intentions before storing them.
-- After misses, diagnose blocker before offering motivation or accepting another vague promise.
-- Do not invent goals, facts, deadlines, preferences, or constraints.
+- Use Zora reminder tools for reminders, not Google Calendar.
+- Use Google Calendar only for the user's external calendar.
+- Do not invent facts, deadlines, preferences, connected apps, or tool results.
 - Do not pretend integrations or tools exist before they are implemented.
 - Store durable context carefully; do not store secrets or unnecessary private data.
-- Store memories with source and confidence; avoid dumping stale or low-value facts into every prompt.
+- Avoid dumping stale or low-value memories into every prompt.
 
 ## Security Principles
 
@@ -199,3 +193,7 @@ Do not overload one timestamp for both.
 - Keep database access private through Railway networking where possible.
 - Use short-lived signed links for sensitive actions like billing, export, and deletion.
 - Do not log secrets, credentials, raw private dumps, or full payment data.
+- Do not log Composio API keys, OAuth tokens, credentials, Connect Link secrets, or raw private app data.
+- Do not expose Composio Connect Links in group chats.
+- External app writes such as sending email, creating calendar events, editing Notion, or deleting data require confirmation unless the user already clearly confirmed the exact action.
+- Composio stores and refreshes connected account credentials; the app should not store OAuth tokens directly.

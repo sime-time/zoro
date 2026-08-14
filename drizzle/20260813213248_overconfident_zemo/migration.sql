@@ -1,0 +1,1 @@
+ALTER TABLE "composio_sessions" DROP COLUMN "is_active";

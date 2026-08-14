@@ -4,6 +4,11 @@ import { REACTIONS } from "../blooio/types";
 import { updateTimezone, updateUserName } from "../db/queries/users";
 import { getCurrentDateTimeInTimezone, normalizeTimeZone } from "../time";
 import type { ChatContext } from "./chat";
+import {
+  createComposioConnectLink,
+  getComposioTools,
+  listComposioConnectedApps,
+} from "./composio";
 import { cancelReminderAction } from "./workflows/cancel-reminder";
 import { completeReminderAction } from "./workflows/complete-reminder";
 import {
@@ -29,7 +34,9 @@ function requireTimezone(context: ChatContext) {
   return null;
 }
 
-export function createTools(context: ChatContext): ToolSet | undefined {
+export async function createTools(
+  context: ChatContext,
+): Promise<ToolSet | undefined> {
   const sendReaction = tool({
     description:
       "Send an iMessage reaction (tapback) to the user's message. Use sparingly - text responses are preferred.",
@@ -158,6 +165,65 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     },
   });
 
+  const connectExternalApp = tool({
+    description:
+      "Generate a secure Connect Link for the user to connect an external app account. Use this when the user asks to connect Gmail, Google Calendar, or Notion, or when an external app is needed but not connected.",
+    inputSchema: z.object({
+      toolkit: z
+        .enum(["gmail", "googlecalendar", "notion"])
+        .describe("The external app toolkit to connect."),
+    }),
+    execute: async ({ toolkit }) => {
+      if (context.isGroupChat) {
+        return {
+          success: false,
+          code: "group_chat_not_supported",
+          message:
+            "Ask the user to message you to connect external apps privately.",
+        };
+      }
+
+      const link = await createComposioConnectLink({
+        userId: context.user.id,
+        threadId: context.thread.id,
+        toolkit,
+      });
+
+      return {
+        success: true,
+        ...link,
+        message:
+          "Send the redirectUrl to the user and ask them to reply done after connecting.",
+      };
+    },
+  });
+
+  const listConnectedExternalApps = tool({
+    description:
+      "List which supported external apps are connected for this user.",
+    inputSchema: z.object({}),
+    execute: async () => {
+      if (context.isGroupChat) {
+        return {
+          success: false,
+          code: "group_chat_not_supported",
+          message:
+            "External app connection status is private. Ask the user to DM you.",
+        };
+      }
+
+      const apps = await listComposioConnectedApps({
+        userId: context.user.id,
+        threadId: context.thread.id,
+      });
+
+      return {
+        success: true,
+        apps,
+      };
+    },
+  });
+
   const tools = {
     setUserName,
     setUserTimezone,
@@ -166,10 +232,19 @@ export function createTools(context: ChatContext): ToolSet | undefined {
     updateReminder: updateReminderTool,
     cancelReminder: cancelReminderTool,
     completeReminder: completeReminderTool,
+    connectExternalApp,
+    listConnectedExternalApps,
   };
 
-  const conditionalTools =
+  const reactionTool =
     context.service === "iMessage" ? { sendReaction } : undefined;
 
-  return { ...tools, ...conditionalTools };
+  const composioTools = context.isGroupChat
+    ? {}
+    : await getComposioTools({
+        userId: context.user.id,
+        threadId: context.thread.id,
+      });
+
+  return { ...tools, ...reactionTool, ...composioTools };
 }

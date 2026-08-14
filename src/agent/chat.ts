@@ -105,7 +105,7 @@ export async function chat({
 
   // Generate system prompt & tools
   const systemPrompt = buildSystemPrompt(chatContext);
-  const tools = createTools(chatContext);
+  const tools = await createTools(chatContext);
 
   // Format conversation history
   const history: ModelMessage[] = conversation.map((c) => {
@@ -135,7 +135,7 @@ export async function chat({
           content: messageContent,
         },
       ],
-      stopWhen: stepCountIs(8),
+      stopWhen: stepCountIs(10),
     });
 
     // Monitor tool calls to initiate side effects

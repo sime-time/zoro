@@ -10,6 +10,7 @@ const EnvSchema = z.object({
   EXA_API_KEY: z.string(),
   INNGEST_EVENT_KEY: z.string(),
   INNGEST_SIGNING_KEY: z.string(),
+  COMPOSIO_API_KEY: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

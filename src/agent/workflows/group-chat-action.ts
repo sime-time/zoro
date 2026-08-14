@@ -29,7 +29,7 @@ export async function getGroupChatAction({
       ? recentMessages
           .map((msg) => {
             if (msg.role === "assistant") {
-              return `Zoro: ${msg.content}`;
+              return `Zora: ${msg.content}`;
             }
 
             const sender = msg.sender_name || msg.sender_phone || "Someone";
@@ -41,26 +41,26 @@ export async function getGroupChatAction({
   const canReact = service === "iMessage";
 
   const reactionOptions = canReact
-    ? `- "react:love", "react:like", "react:dislike", "react:laugh", "react:emphasize", or "react:question" - Zoro should only send an iMessage reaction.`
+    ? `- "react:love", "react:like", "react:dislike", "react:laugh", "react:emphasize", or "react:question" - Zora should only send an iMessage reaction.`
     : "";
 
-  const system = `You classify how Zoro should handle a message in a group chat.
+  const system = `You classify how Zora should handle a message in a group chat.
 
 Answer with exactly one of these:
-- "respond" - Zoro should send a text reply.
+- "respond" - Zora should send a text reply.
 ${reactionOptions}
-- "ignore" - The humans are talking to each other and Zoro should stay quiet.
+- "ignore" - The humans are talking to each other and Zora should stay quiet.
 
 Use "respond" when:
-- someone mentions Zoro
-- someone asks Zoro a question
+- someone mentions Zora
+- someone asks Zora a question
 - someone asks for reminders, web search, scheduling, help, or assistant behavior
-- the message is clearly directed at Zoro
-- it follows up on something Zoro just said
+- the message is clearly directed at Zora
+- it follows up on something Zora just said
 
 Use "ignore" when:
 - the message is just human-to-human conversation
-- Zoro is not being addressed
+- Zora is not being addressed
 - responding would interrupt the group
 
 ${canReact ? `Use "react:*" when a tapback is enough and no text reply is needed.` : ""}
@@ -74,7 +74,7 @@ Return only the classification.`;
       messages: [
         {
           role: "user",
-          content: `Recent conversation:\n${contextBlock}\n\nNew message from ${sender}: "${message}"\n\nHow should Zoro handle this?`,
+          content: `Recent conversation:\n${contextBlock}\n\nNew message from ${sender}: "${message}"\n\nHow should Zora handle this?`,
         },
       ],
     });

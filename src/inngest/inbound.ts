@@ -121,7 +121,7 @@ export const inboundMessageReceived = inngest.createFunction(
         }),
       );
 
-      // Determine if Zoro should respond/react/ignore in group chat
+      // Determine if agent should respond/react/ignore in group chat
       if (isGroupChat && images.length === 0 && audio.length === 0) {
         const { action, reaction: groupReaction } = await step.run(
           "get group chat action",

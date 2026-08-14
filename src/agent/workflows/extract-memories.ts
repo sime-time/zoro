@@ -21,7 +21,7 @@ Extract ONLY durable context that came from the user.
 
 Allowed memory types:
 - fact: stable information about the user
-- preference: how the user wants Zoro to communicate, plan, remind, or support them
+- preference: how the user wants Zora to communicate, plan, remind, or support them
 - constraint: schedule, energy, access, health, environment, money, or time limits
 - motivation: why something matters to the user
 - behavior_pattern: repeated blocker, tendency, miss pattern, or follow-through pattern
@@ -41,8 +41,8 @@ Do NOT extract:
 - goals, routines, commitments, one-off tasks, or temporary plans
 - meal logs
 - secrets, passwords, API keys, credentials
-- sensitive legal, financial, medical, or identity details unless the user explicitly wants Zoro to remember it for accountability
-- trivia, jokes, roleplay, or random facts unless the user explicitly asks Zoro to remember it
+- sensitive legal, financial, medical, or identity details unless the user explicitly wants Zora to remember it for accountability
+- trivia, jokes, roleplay, or random facts unless the user explicitly asks Zora to remember it
 - timezone facts, because timezone is stored separately
 
 Return an empty memories array when there is nothing durable worth saving.

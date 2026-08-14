@@ -174,3 +174,29 @@ export const scheduledMessages = pgTable(
     index("scheduled_messages_thread_idx").on(table.thread_id),
   ],
 );
+
+export const composioSessions = pgTable(
+  "composio_sessions",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    user_id: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    thread_id: uuid()
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    composio_session_id: text().notNull(),
+    toolkits: text().array(),
+    last_error: text(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex("composio_sessions_session_idx").on(table.composio_session_id),
+    uniqueIndex("composio_sessions_user_thread_idx").on(
+      table.user_id,
+      table.thread_id,
+    ),
+    index("composio_sessions_user_idx").on(table.user_id),
+    index("composio_sessions_thread_idx").on(table.thread_id),
+  ],
+);

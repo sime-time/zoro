@@ -1,5 +1,5 @@
 {
-  "name": "zoro",
+  "name": "zora",
   "module": "index.ts",
   "scripts": {
     "start": "bun run src/main.ts",
@@ -21,6 +21,8 @@
   "dependencies": {
     "@ai-sdk/google": "^4.0.8",
     "@ai-sdk/openai": "^4.0.4",
+    "@composio/core": "^0.16.0",
+    "@composio/vercel": "^0.11.1",
     "ai": "^7.0.9",
     "dayjs": "^1.11.21",
     "drizzle-orm": "^1.0.0-rc.4",
