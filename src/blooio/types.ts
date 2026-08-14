@@ -69,7 +69,9 @@ export function extractImageAttachments(
   attachments: MediaAttachment[],
 ): ExtractedMedia[] {
   return attachments
-    .filter((attachment) => attachment.media_type.startsWith("image/"))
+    .filter((attachment) =>
+      attachment.media_type.toLowerCase().startsWith("image/"),
+    )
     .map((attachment) => ({
       url: attachment.url,
       mimeType: attachment.media_type,
@@ -80,7 +82,9 @@ export function extractAudioAttachments(
   attachments: MediaAttachment[],
 ): ExtractedMedia[] {
   return attachments
-    .filter((attachment) => attachment.media_type.startsWith("audio/"))
+    .filter((attachment) =>
+      attachment.media_type.toLowerCase().startsWith("audio/"),
+    )
     .map((attachment) => ({
       url: attachment.url,
       mimeType: attachment.media_type,
