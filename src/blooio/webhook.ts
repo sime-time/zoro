@@ -31,13 +31,15 @@ export async function blooioWebhookHandler(c: Context) {
   let event: WebhookEvent;
   try {
     event = JSON.parse(rawBody) as WebhookEvent;
-    if (event.event !== "message.received") {
+
+    if (event.type !== "message.received") {
       return c.json({ status: "ok" }, 200);
     }
+
     if (
-      typeof event.message_id !== "string" ||
-      typeof event.external_id !== "string" ||
-      typeof event.is_group !== "boolean"
+      typeof event.data.message_id !== "string" ||
+      typeof event.data.chat_id !== "string" ||
+      typeof event.data.sender !== "string"
     ) {
       return c.json({ status: "bad_request" }, 400);
     }
@@ -46,16 +48,17 @@ export async function blooioWebhookHandler(c: Context) {
     return c.json({ status: "bad_request" }, 400);
   }
 
-  const sender = event.sender;
+  const message = event.data;
+  const sender = message.sender;
   if (!sender) {
     console.log("[webhook] Skip message with no sender");
     return c.json({ status: "ok" }, 200);
   }
 
   // Extract text and media attachments
-  const text = event.text || "";
-  const images = extractImageAttachments(event.attachments);
-  const audio = extractAudioAttachments(event.attachments);
+  const text = message.text || "";
+  const images = extractImageAttachments(message.attachments);
+  const audio = extractAudioAttachments(message.attachments);
 
   // Message is empty when there is no text, images, or audio
   if (!text.trim() && images.length === 0 && audio.length === 0) {
@@ -63,28 +66,25 @@ export async function blooioWebhookHandler(c: Context) {
     return c.json({ status: "ok" }, 200);
   }
 
-  // Determine chatId: for group chats use group_id, for 1:1 use external_id
-  const blooioChatId =
-    event.is_group && event.group_id ? event.group_id : event.external_id;
+  // v4 chat_id is the stable reply target for both 1:1 and group chats.
+  const blooioChatId = message.chat_id;
+  const isGroup = Boolean(message.is_group || message.group);
+  const service = mapProtocolToService(message.protocol);
 
   console.log(
     `[webhook] Message from ${sender} in ${blooioChatId}: "${text.substring(0, 50)}"`,
   );
 
-  // Pass the cleaned message to handler
-  const service = mapProtocolToService(event.protocol);
-
   await inngest.send({
     name: "inbound-message/received",
     data: {
       blooioChatId,
-      blooioMessageId: event.message_id,
-      blooioParticipants: event.participants ?? [],
+      blooioMessageId: message.message_id,
       sender,
       textMessage: text,
       images,
       audio,
-      isGroup: event.is_group,
+      isGroup,
       service,
     },
   });

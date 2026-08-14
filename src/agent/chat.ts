@@ -24,7 +24,6 @@ export interface ChatContext {
   memories?: Jsonify<Memory[]>;
   reminders?: Jsonify<Reminder[]>;
   isGroupChat: boolean;
-  participantNames: string[];
   senderHandle: string;
   service?: MessageService;
 }

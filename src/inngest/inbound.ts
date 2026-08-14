@@ -2,18 +2,13 @@ import { chat } from "../agent/chat";
 import { extractAndSaveMemories } from "../agent/workflows/extract-memories";
 import { getGroupChatAction } from "../agent/workflows/group-chat-action";
 import {
-  getChatInfo,
   markAsRead,
   sendMessage,
   sendReaction,
   startTyping,
   stopTyping,
 } from "../blooio/api";
-import type {
-  ChatParticipant,
-  ExtractedMedia,
-  MessageService,
-} from "../blooio/types";
+import type { ExtractedMedia, MessageService } from "../blooio/types";
 import { getActiveMemories } from "../db/queries/memories";
 import { getActiveReminders } from "../db/queries/reminders";
 import { getConversation, saveMessage } from "../db/queries/threads";
@@ -23,7 +18,6 @@ import { inngest } from "./client";
 interface InboundMessageArgs {
   blooioChatId: string;
   blooioMessageId: string;
-  blooioParticipants?: ChatParticipant[];
   sender: string;
   textMessage: string;
   images: ExtractedMedia[];
@@ -61,7 +55,6 @@ export const inboundMessageReceived = inngest.createFunction(
     const {
       blooioChatId,
       blooioMessageId,
-      blooioParticipants = [],
       sender,
       textMessage,
       images = [],
@@ -80,31 +73,6 @@ export const inboundMessageReceived = inngest.createFunction(
         findOrCreateUser(phoneNumber),
       );
 
-      const chatInfo = await step.run("get chat info", async () => {
-        try {
-          return await getChatInfo(blooioChatId);
-        } catch (err) {
-          console.error(
-            "[inbound] Failed to fetch chat info:",
-            err instanceof Error ? err.message : err,
-          );
-
-          return {
-            id: blooioChatId,
-            participants: blooioParticipants,
-            displayName: null,
-            isGroup,
-            groupId: isGroup ? blooioChatId : null,
-          };
-        }
-      });
-
-      const isGroupChat = chatInfo.isGroup || isGroup;
-
-      const chatParticipants = chatInfo.participants.map(
-        (p) => p.name || p.identifier,
-      );
-
       const [reminders, memories] = await step.run("load user context", () =>
         Promise.all([
           getActiveReminders(user.id),
@@ -116,13 +84,13 @@ export const inboundMessageReceived = inngest.createFunction(
         getConversation({
           phoneNumber,
           blooioChatId,
-          isGroup: isGroupChat,
+          isGroup,
           limit: 20,
         }),
       );
 
       // Determine if agent should respond/react/ignore in group chat
-      if (isGroupChat && images.length === 0 && audio.length === 0) {
+      if (isGroup && images.length === 0 && audio.length === 0) {
         const { action, reaction: groupReaction } = await step.run(
           "get group chat action",
           () =>
@@ -188,9 +156,8 @@ export const inboundMessageReceived = inngest.createFunction(
               thread,
               memories,
               reminders,
-              isGroupChat,
+              isGroupChat: isGroup,
               senderHandle: sender,
-              participantNames: chatParticipants,
               service,
             },
           }),
@@ -224,7 +191,7 @@ export const inboundMessageReceived = inngest.createFunction(
             blooioChatId,
             role: "assistant",
             content: fullMessage,
-            isGroup: isGroupChat,
+            isGroup,
           }),
         );
 

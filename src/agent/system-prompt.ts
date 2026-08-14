@@ -238,14 +238,9 @@ export function buildSystemPrompt(context?: ChatContext): string {
   }
 
   if (context?.isGroupChat) {
-    const participants = context.participantNames.length
-      ? context.participantNames.join(", ")
-      : "unknown";
-
     prompt += `\n\n## Group Chat Context`;
     prompt += `\nYou are in a group chat.`;
     prompt += `\nCurrent sender: ${context.senderHandle}.`;
-    prompt += `\nParticipants: ${participants}.`;
     prompt += `\nEveryone in the group can see your replies.`;
     prompt += `\nAddress the sender by name or handle when useful.`;
     prompt += `\nKeep replies short because group chats move fast.`;
