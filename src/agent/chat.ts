@@ -61,14 +61,6 @@ export async function chat({
 
   // Handle images
   for (const image of images) {
-    console.log("handle image:", {
-      type: "file",
-      mediaType: image.mimeType,
-      data: {
-        type: "url",
-        url: new URL(image.url),
-      },
-    });
     messageContent.push({
       type: "file",
       mediaType: image.mimeType,
