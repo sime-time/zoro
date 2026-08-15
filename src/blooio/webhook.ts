@@ -3,9 +3,8 @@ import { inngest } from "../inngest/client";
 import {
   extractAudioAttachments,
   extractImageAttachments,
-  mapProtocolToService,
-  type WebhookEvent,
-} from "./types";
+} from "./attachments";
+import { mapProtocolToService, type WebhookEvent } from "./types";
 import { verifyBlooioSignature } from "./verify";
 
 export async function blooioWebhookHandler(c: Context) {
